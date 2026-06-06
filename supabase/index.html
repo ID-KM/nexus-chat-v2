@@ -599,7 +599,14 @@
                     if(n.user_id === userId) {
                         // Replace temp element ID with real DB ID
                         const tempEl = chat.querySelector('[data-id^="temp_"]');
-                        if(tempEl) tempEl.setAttribute('data-id', n.id);
+                        if(tempEl) {
+                            tempEl.setAttribute('data-id', n.id);
+                            // Also update edit/delete button data
+                            const editBtn = tempEl.querySelector('[data-edit^="temp_"]');
+                            if(editBtn) editBtn.setAttribute('data-edit', n.id);
+                            const delBtn = tempEl.querySelector('[data-del^="temp_"]');
+                            if(delBtn) delBtn.setAttribute('data-del', n.id);
+                        }
                     } else {
                         renderMessage(n);
                         scrollDown();
@@ -657,7 +664,7 @@
 
         const div = document.createElement('div');
         div.className = `msg ${align}`;
-        div.setAttribute('data-id', msg._tempId || msg.id);
+        div.setAttribute('data-id', msg.id);
 
         const isImg = msg.text && msg.text.startsWith('data:image');
         const bstyle = !isMe ? ` style="background:${bc}"` : '';
@@ -765,13 +772,13 @@
 
         // Optimistic render (appears immediately)
         const tempId = 'temp_' + Date.now();
-        msg._tempId = tempId;
+        msg.id = tempId;            // ← _tempId → id
         renderMessage(msg);
         scrollDown();
         playSound('send');
 
         try {
-            delete msg._tempId;
+            delete msg._tempId;   ←  غيّره إلى  delete msg.id;
             const { error } = await sb.from('messages').insert(msg);
             if(error) throw error;
         } catch(e) {
