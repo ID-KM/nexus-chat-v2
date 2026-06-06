@@ -484,12 +484,14 @@
             renderOnlineUsers();
         });
 
-        presenceChannel.subscribe().then(() => {
-            presenceChannel.track({
-                user_name: myName,
-                color: myColor,
-                online_at: new Date().toISOString()
-            });
+        presenceChannel.subscribe((status) => {
+            if(status === 'SUBSCRIBED') {
+                presenceChannel.track({
+                    user_name: myName,
+                    color: myColor,
+                    online_at: new Date().toISOString()
+                });
+            }
         });
     }
 
