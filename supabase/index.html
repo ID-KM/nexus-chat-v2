@@ -771,6 +771,7 @@
         playSound('send');
 
         try {
+            delete msg._tempId;
             const { error } = await sb.from('messages').insert(msg);
             if(error) throw error;
         } catch(e) {
@@ -788,6 +789,7 @@
         playSound('send');
 
         try {
+            delete msg._tempId;
             const { error } = await sb.from('messages').insert(msg);
             if(error) throw error;
         } catch(e) { toast('فشل إرسال الصورة: ' + e.message); }
