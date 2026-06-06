@@ -657,7 +657,7 @@
 
         const div = document.createElement('div');
         div.className = `msg ${align}`;
-        div.setAttribute('data-id', msg.id);
+        div.setAttribute('data-id', msg._tempId || msg.id);
 
         const isImg = msg.text && msg.text.startsWith('data:image');
         const bstyle = !isMe ? ` style="background:${bc}"` : '';
@@ -765,7 +765,7 @@
 
         // Optimistic render (appears immediately)
         const tempId = 'temp_' + Date.now();
-        msg.id = tempId;
+        msg._tempId = tempId;
         renderMessage(msg);
         scrollDown();
         playSound('send');
@@ -782,7 +782,7 @@
         if(base64.length > MAX_IMG) { toast('حجم الصورة كبير جداً (500KB كحد أقصى)'); return; }
         const msg = { text:base64, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
         const tempId = 'temp_' + Date.now();
-        msg.id = tempId;
+        msg._tempId = tempId;
         renderMessage(msg);
         scrollDown();
         playSound('send');
