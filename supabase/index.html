@@ -593,10 +593,16 @@
         switch(eventType) {
             case 'INSERT': {
                 const ld=$('loading'); if(ld) ld.remove();
-                if(n && n.user_id !== userId && n.room === currentRoom) {
-                    renderMessage(n);
-                    scrollDown();
-                    playSound('receive');
+                if(n && n.room === currentRoom) {
+                    if(n.user_id === userId) {
+                        // Replace temp element ID with real DB ID
+                        const tempEl = chat.querySelector('[data-id^="temp_"]');
+                        if(tempEl) tempEl.setAttribute('data-id', n.id);
+                    } else {
+                        renderMessage(n);
+                        scrollDown();
+                        playSound('receive');
+                    }
                 }
                 break;
             }
@@ -755,24 +761,16 @@
         const msg = { text, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
         mi.value = ''; saveDraft();
 
-        // Optimistic
+        // Optimistic render (appears immediately)
         const tempId = 'temp_' + Date.now();
         msg.id = tempId;
-        myMessages.add(tempId);
         renderMessage(msg);
         scrollDown();
         playSound('send');
 
         try {
-            const { data, error } = await sb.from('messages').insert(msg).select();
+            const { error } = await sb.from('messages').insert(msg);
             if(error) throw error;
-            if(data && data[0]) {
-                // Replace temp with real
-                const el = document.querySelector(`[data-id="${tempId}"]`);
-                if(el) el.setAttribute('data-id', data[0].id);
-                myMessages.delete(tempId);
-                myMessages.add(data[0].id);
-            }
         } catch(e) {
             toast('فشل الإرسال: ' + e.message);
         }
@@ -783,20 +781,13 @@
         const msg = { text:base64, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
         const tempId = 'temp_' + Date.now();
         msg.id = tempId;
-        myMessages.add(tempId);
         renderMessage(msg);
         scrollDown();
         playSound('send');
 
         try {
-            const { data, error } = await sb.from('messages').insert(msg).select();
+            const { error } = await sb.from('messages').insert(msg);
             if(error) throw error;
-            if(data && data[0]) {
-                const el = document.querySelector(`[data-id="${tempId}"]`);
-                if(el) el.setAttribute('data-id', data[0].id);
-                myMessages.delete(tempId);
-                myMessages.add(data[0].id);
-            }
         } catch(e) { toast('فشل إرسال الصورة: ' + e.message); }
     }
 
