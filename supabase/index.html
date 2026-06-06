@@ -353,10 +353,7 @@
                 break;
             }
             case 'UPDATE': {
-                if (newRec.deleted) {
-                    const el = document.querySelector(`[data-id="${newRec.id}"]`);
-                    if (el) el.remove();
-                }
+                // No-op (we only do hard deletes now)
                 break;
             }
             case 'DELETE': {
@@ -467,11 +464,11 @@
         try {
             const { error } = await sb
                 .from('messages')
-                .update({ deleted: true })
+                .delete()
                 .eq('id', id)
                 .eq('user_id', userId);
             if (error) throw error;
-            // Remove from view (will also come via realtime)
+            // Remove from view immediately
             const el = document.querySelector(`[data-id="${id}"]`);
             if (el) el.remove();
         } catch(e) {

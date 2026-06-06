@@ -27,11 +27,11 @@ CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at DESC);
 -- تشغيل RLS
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 
--- السماح للجميع بقراءة الرسائل غير المحذوفة
-CREATE POLICY "Anyone can read non-deleted messages"
+-- السماح للجميع بقراءة كل الرسائل
+CREATE POLICY "Anyone can read messages"
   ON messages
   FOR SELECT
-  USING (deleted = FALSE);
+  USING (true);
 
 -- السماح للجميع بإضافة رسائل جديدة
 CREATE POLICY "Anyone can insert messages"
@@ -39,28 +39,17 @@ CREATE POLICY "Anyone can insert messages"
   FOR INSERT
   WITH CHECK (true);
 
--- السماح فقط لصاحب الرسالة بحذفها (تحديث deleted = true)
-CREATE POLICY "Owner can soft-delete their message"
+-- السماح بحذف الرسالة — العميل يتحقق من user_id في الاستعلام نفسه
+CREATE POLICY "Anyone can delete their own messages"
   ON messages
-  FOR UPDATE
-  USING (user_id = current_setting('app.user_id', TRUE) OR user_id IS NOT NULL)
-  WITH CHECK (deleted = TRUE AND user_id = current_setting('app.user_id', TRUE));
+  FOR DELETE
+  USING (true);
 
 -- ═══════════════════════════════════════════════════════════════
--- ملاحظة: RLS أعلاه خاص بالنسخة المتقدمة.
--- للنسخة البسيطة (chat مفتوح بدون أمان)، استخدم هذه القاعدة بدلاً من ذلك:
+-- ملاحظة: هذا البوليسي يسمح لأي شخص بحذف أي رسالة.
+-- الأمان يجي من العميل (Client) اللي يرسل user_id في طلب الحذف.
+-- للنسخة المحمية، استخدم Supabase Auth + جلسات المستخدمين.
 -- ═══════════════════════════════════════════════════════════════
-
--- DROP POLICY IF EXISTS "Anyone can insert messages" ON messages;
--- DROP POLICY IF EXISTS "Owner can soft-delete their message" ON messages;
--- DROP POLICY IF EXISTS "Anyone can read non-deleted messages" ON messages;
--- DROP POLICY IF EXISTS "Anyone can soft-delete" ON messages;
-
--- CREATE POLICY "Anyone can do anything"
---   ON messages
---   FOR ALL
---   USING (true)
---   WITH CHECK (true);
 
 -- ═══════════════════════════════════════════════════════════════
 -- Enable Realtime (أيضاً من Dashboard)
