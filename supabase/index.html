@@ -2,60 +2,51 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Chat v2 | Supabase</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nexus Chat v2</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
     <style>
-        /* ── Reset & Theme ─────────────────────────────── */
+        /* ═══ Reset & Theme ═══════════════════ */
         :root {
-            --primary: #00a884;
-            --bg: #111b21;
-            --panel: #202c33;
-            --input: #2a3942;
-            --text: #e9edef;
-            --muted: #8696a0;
-            --danger: #ef5350;
-            --sent: #005c4b;
+            --primary: #00a884; --bg: #111b21; --panel: #202c33;
+            --input: #2a3942; --text: #e9edef; --muted: #8696a0;
+            --danger: #ef5350; --sent: #005c4b;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-            background:var(--bg); color:var(--text);
-            height:100vh; display:flex; justify-content:center;
-            align-items:center; overflow:hidden;
+            background:var(--bg); color:var(--text); height:100vh;
+            display:flex; justify-content:center; align-items:center; overflow:hidden;
         }
 
-        /* ── Name Screen ─────────────── */
+        /* ═══ Name Screen ═════════════════════ */
         #screen {
-            position:fixed;inset:0;
-            background:rgba(17,27,33,0.97);
+            position:fixed;inset:0;background:rgba(17,27,33,0.97);
             backdrop-filter:blur(12px);z-index:9999;
             display:flex;align-items:center;justify-content:center;
         }
         #screen.hide { display:none; }
         .card {
-            background:var(--panel);padding:2.5rem 2rem;
-            border-radius:1rem;text-align:center;
-            box-shadow:0 10px 40px rgba(0,0,0,0.4);
+            background:var(--panel);padding:2.5rem 2rem;border-radius:1rem;
+            text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.4);
             width:90%;max-width:380px;
         }
-        .card h1 { font-size:1.5rem; margin:1rem 0 0.3rem; }
-        .card p { color:var(--muted); font-size:0.85rem; margin-bottom:1.5rem; }
+        .card h1 { font-size:1.5rem; margin:1rem 0 .3rem; }
+        .card p { color:var(--muted); font-size:.85rem; margin-bottom:1.5rem; }
         .card input {
             width:100%;padding:12px 16px;border-radius:8px;
             border:1px solid #333;background:var(--input);
-            color:#fff;font-size:1rem;text-align:center;
-            outline:none;transition:border-color .2s;
+            color:#fff;font-size:1rem;text-align:center;outline:none;
+            transition:border-color .2s;
         }
         .card input:focus { border-color:var(--primary); }
         .card .colors {
-            display:flex;justify-content:center;gap:10px;
-            margin:1rem 0;
+            display:flex;justify-content:center;gap:10px;margin:1rem 0;
         }
         .card .dot {
-            width:28px;height:28px;border-radius:50%;
-            cursor:pointer;border:3px solid transparent;transition:.2s;
+            width:28px;height:28px;border-radius:50%;cursor:pointer;
+            border:3px solid transparent;transition:.2s;
         }
         .card .dot.ok { border-color:#fff; transform:scale(1.15); }
         .card button {
@@ -63,57 +54,78 @@
             background:var(--primary);color:#fff;font-size:1rem;
             font-weight:bold;cursor:pointer;transition:opacity .2s;
         }
-        .card button:disabled { opacity:.5; cursor:not-allowed; }
-        .card .step { font-size:.8rem; color:var(--muted); margin:.8rem 0; }
 
-        /* ── App ─────────────────────── */
-        .app {
-            width:100%;max-width:1000px;height:100vh;
-            background:var(--bg);display:flex;flex-direction:column;
-        }
+        /* ═══ App Layout ══════════════════════ */
+        .app { width:100%; max-width:1000px; height:100vh; background:var(--bg); display:flex; flex-direction:column; }
+
+        /* ═══ Header ══════════════════════════ */
         header {
             background:var(--panel);padding:10px 16px;
             display:flex;align-items:center;justify-content:space-between;
-            border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0;
+            border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0; gap:8px;
         }
-        .hl { display:flex;align-items:center;gap:12px; }
+        .hl { display:flex;align-items:center;gap:12px; overflow:hidden; }
         .av {
-            width:40px;height:40px;border-radius:50%;
+            width:40px;height:40px;border-radius:50%;flex-shrink:0;
             display:flex;align-items:center;justify-content:center;
-            font-weight:bold;font-size:.9rem;flex-shrink:0;
+            font-weight:bold;font-size:.9rem;
         }
-        .ri h3 { font-size:.95rem; }
+        .ri { overflow:hidden; }
+        .ri h3 { font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .ri small { font-size:.75rem; color:var(--muted); }
-        .ht { display:flex;align-items:center;gap:8px; }
+        .ht { display:flex;align-items:center;gap:4px; flex-shrink:0; }
         .ib {
             background:transparent;border:none;color:var(--muted);
             width:36px;height:36px;border-radius:50%;cursor:pointer;
             display:flex;align-items:center;justify-content:center;
-            transition:.2s;font-size:1.1rem;
+            transition:.2s;font-size:1.1rem; flex-shrink:0;
         }
         .ib:hover { background:rgba(255,255,255,.08); color:var(--text); }
         .ib.on { color:var(--primary); background:rgba(0,168,132,.15); }
+        .ib.onl { position:relative; }
+        .ib.onl .badge {
+            position:absolute;top:0;right:0;width:10px;height:10px;
+            border-radius:50%;background:#4caf50;
+        }
+        .ib.onl.has-online .badge { background:#4caf50; }
 
-        /* ── Chat ────────────────────── */
+        /* ═══ Online Panel ════════════════════ */
+        #online-panel {
+            background:var(--panel);border-bottom:1px solid rgba(255,255,255,.05);
+            max-height:0;overflow:hidden;transition:max-height .3s ease;
+            flex-shrink:0;
+        }
+        #online-panel.open { max-height:200px; overflow-y:auto; }
+        #online-panel .u {
+            display:flex;align-items:center;gap:10px;
+            padding:8px 16px;cursor:pointer;
+            transition:background .15s;
+        }
+        #online-panel .u:hover { background:rgba(255,255,255,.05); }
+        #online-panel .u .ud { width:32px;height:32px;border-radius:50%;flex-shrink:0; display:flex;align-items:center;justify-content:center; font-weight:bold; font-size:.8rem; }
+        #online-panel .u .un { font-size:.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        #online-panel .u .ustat { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+        #online-panel .u .ustat.online { background:#4caf50; }
+        #online-panel .u .ustat.offline { background:#666; }
+        #online-panel .u .dmic { margin-right:auto; font-size:.7rem; color:var(--muted); }
+
+        /* ═══ Chat ════════════════════════════ */
         #chat {
             flex:1;overflow-y:auto;padding:16px;
             background-image:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
             background-blend-mode:overlay;background-color:var(--bg);
-            display:flex;flex-direction:column;gap:8px;
-            scroll-behavior:smooth;
+            display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth;
         }
-
         .msg { display:flex; flex-direction:column; max-width:78%; animation:in .25s ease; }
         @keyframes in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
         .msg.se { align-self:flex-end; align-items:flex-end; }
         .msg.re { align-self:flex-start; align-items:flex-start; }
         .msg.fs { align-self:flex-start; align-items:flex-start; }
         .msg.fr { align-self:flex-end; align-items:flex-end; }
-
         .msg .nm { font-size:.72rem; font-weight:bold; margin-bottom:2px; padding:0 4px; }
-        .msg.re .nm { color:#53bdeb; }
+        .msg.re .nm { color:#53bdeb; cursor:pointer; }
+        .msg.re .nm:hover { text-decoration:underline; }
         .msg.se .nm { color:#dcf8c6; }
-
         .msg .bb {
             padding:7px 12px;border-radius:8px;font-size:.95rem;
             line-height:1.5;word-break:break-word;
@@ -123,27 +135,37 @@
         .msg.re .bb { background:var(--panel); border-radius:8px 8px 8px 2px; }
         .msg.fs .bb { background:var(--sent); border-radius:8px 8px 8px 2px; }
         .msg.fr .bb { background:var(--panel); border-radius:8px 8px 2px 8px; }
-
         .msg .bb img { max-width:100%; max-height:300px; border-radius:4px; margin:4px 0; display:block; cursor:pointer; }
         .msg .mt {
             font-size:.6rem; color:rgba(255,255,255,.5);
-            display:flex; align-items:center; gap:8px; margin-top:3px; direction:ltr;
+            display:flex;align-items:center;gap:6px;margin-top:3px;direction:ltr;
         }
-        .msg .mt .db {
-            background:none;border:none;color:var(--danger);cursor:pointer;
-            font-size:.7rem;opacity:.5;transition:.2s;padding:2px;
+        .msg .mt .act {
+            background:none;border:none;color:var(--muted);cursor:pointer;
+            font-size:.65rem;opacity:.4;transition:.2s;padding:2px;
         }
+        .msg .mt .act:hover { opacity:1; color:var(--primary); }
+        .msg .mt .db { color:var(--danger); }
         .msg .mt .db:hover { opacity:1; transform:scale(1.15); }
         .msg .bb a { color:#53bdeb; text-decoration:underline; }
+        .msg .edited { font-size:.6rem; color:var(--muted); margin-right:4px; }
+        .msg .room-tag {
+            font-size:.6rem;color:var(--muted);background:rgba(255,255,255,.08);
+            padding:1px 6px;border-radius:4px;margin-right:4px;
+        }
 
-        #typing { padding:2px 16px 8px; font-size:.78rem; color:var(--muted); min-height:1.2em; flex-shrink:0; }
+        /* ═══ Loading ═════════════════════════ */
         #loading { display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted); gap:8px; }
-        .spinner { width:20px; height:20px; border:3px solid var(--panel); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
-        @keyframes spin { to { transform:rotate(360deg); } }
+        .spinner { width:20px;height:20px; border:3px solid var(--panel); border-top-color:var(--primary); border-radius:50%; animation:spin .8s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg);} }
 
+        /* ═══ Typing ══════════════════════════ */
+        #typing { padding:2px 16px 8px; font-size:.78rem; color:var(--muted); min-height:1.2em; flex-shrink:0; }
+
+        /* ═══ Footer ══════════════════════════ */
         footer {
             background:var(--panel);padding:8px 12px;
-            display:flex;align-items:center;gap:8px;flex-shrink:0;
+            display:flex;align-items:center;gap:6px;flex-shrink:0;
         }
         .iw {
             flex:1;background:var(--input);border-radius:24px;
@@ -156,16 +178,74 @@
         .iw input::placeholder { color:var(--muted); }
         .sb { color:var(--primary); }
 
+        /* ═══ Emoji Picker ════════════════════ */
+        #emoji-picker {
+            position:absolute;bottom:60px;left:12px;
+            background:var(--panel);border-radius:12px;
+            padding:10px;box-shadow:0 5px 30px rgba(0,0,0,.5);
+            display:none;z-index:500;max-width:320px;
+        }
+        #emoji-picker.open { display:block; }
+        #emoji-picker .eg {
+            display:grid;grid-template-columns:repeat(8,1fr);gap:4px;
+            max-height:200px;overflow-y:auto;
+        }
+        #emoji-picker .eg span {
+            font-size:1.4rem;cursor:pointer;text-align:center;
+            padding:4px;border-radius:6px;transition:background .15s;
+            line-height:1.4;
+        }
+        #emoji-picker .eg span:hover { background:rgba(255,255,255,.1); }
+        #emoji-picker .search-emoji {
+            width:100%;padding:6px 10px;margin-bottom:6px;
+            border-radius:6px;border:1px solid #333;background:var(--input);
+            color:#fff;font-size:.8rem;outline:none;
+        }
+
+        /* ═══ Edit Modal ══════════════════════ */
+        #edit-overlay {
+            position:fixed;inset:0;background:rgba(0,0,0,.6);
+            z-index:9998;display:none;align-items:center;justify-content:center;
+        }
+        #edit-overlay.open { display:flex; }
+        #edit-modal {
+            background:var(--panel);border-radius:12px;padding:20px;
+            width:90%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,.5);
+        }
+        #edit-modal h3 { margin-bottom:12px; font-size:1rem; }
+        #edit-modal textarea {
+            width:100%;padding:10px;border-radius:8px;
+            border:1px solid #333;background:var(--input);
+            color:#fff;font-size:.9rem;outline:none;resize:none;
+            min-height:80px;font-family:inherit;
+        }
+        #edit-modal .ebtns {
+            display:flex;gap:10px;margin-top:12px;justify-content:flex-end;
+        }
+        #edit-modal .ebtns button {
+            padding:8px 20px;border:none;border-radius:8px;
+            cursor:pointer;font-weight:bold;font-size:.85rem;
+        }
+        #edit-modal .ebtns .cancel { background:var(--input); color:var(--text); }
+        #edit-modal .ebtns .save { background:var(--primary); color:#fff; }
+
+        /* ═══ Toast ═══════════════════════════ */
         #toast {
             position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
             background:var(--danger);color:#fff;padding:10px 20px;
-            border-radius:20px;font-size:.85rem;z-index:999;
+            border-radius:20px;font-size:.85rem;z-index:9999;
             opacity:0;transition:opacity .3s;pointer-events:none;
         }
         #toast.shw { opacity:1; }
+
+        /* ═══ Scrollbar ═══════════════════════ */
         #chat::-webkit-scrollbar { width:5px; }
         #chat::-webkit-scrollbar-track { background:transparent; }
         #chat::-webkit-scrollbar-thumb { background:#374045; border-radius:3px; }
+        #online-panel::-webkit-scrollbar { width:4px; }
+        #online-panel::-webkit-scrollbar-thumb { background:#374045; border-radius:3px; }
+
+        /* ═══ Responsive ══════════════════════ */
         @media (max-width:640px) { .msg { max-width:88%; } .card { padding:1.5rem; } }
     </style>
 </head>
@@ -173,12 +253,12 @@
 
 <div id="toast"></div>
 
-<!-- ── Name Screen ─────────────────── -->
+<!-- ═══ Name Screen ═══════════════ -->
 <div id="screen">
     <div class="card">
         <i class="fas fa-comments" style="font-size:2.8rem;color:var(--primary)"></i>
         <h1>Nexus Chat</h1>
-        <p>محادثة فورية — يعمل على Supabase + GitHub Pages</p>
+        <p>محادثة فورية — اختر اسمك وانضم</p>
         <input type="text" id="ni" placeholder="اسمك ليظهر للآخرين" maxlength="30" autocomplete="off">
         <div class="colors" id="cg">
             <div class="dot ok" data-c="#005c4b" style="background:#005c4b"></div>
@@ -189,188 +269,383 @@
             <div class="dot" data-c="#444" style="background:#444"></div>
         </div>
         <button id="jb">انضم إلى المحادثة</button>
-        <div class="step" id="sBar">⚠️ يلزم إعداد Supabase — انظر README</div>
     </div>
 </div>
 
-<!-- ── App ──────────────────────────── -->
+<!-- ═══ App ════════════════════════ -->
 <div class="app">
+
     <header>
         <div class="hl">
             <div class="av" id="myAv" style="background:var(--primary)">N</div>
             <div class="ri">
-                <h3>غرفة المحادثة</h3>
-                <small id="sBar2">Supabase</small>
+                <h3 id="roomTitle">غرفة المحادثة</h3>
+                <small id="sBar2">⚠️ غير مهيأ</small>
             </div>
         </div>
         <div class="ht">
+            <button class="ib onl" id="onlineToggle" title="المتصلون"><i class="fas fa-users"></i><span class="badge" id="onlineBadge"></span></button>
             <button class="ib" id="fb" title="عكس"><i class="fas fa-exchange-alt"></i></button>
+            <button class="ib" id="soundToggle" title="الصوت"><i class="fas fa-volume-up"></i></button>
         </div>
     </header>
+
+    <!-- Online Users Panel -->
+    <div id="online-panel">
+        <div id="online-list"></div>
+    </div>
+
     <div id="chat"><div id="loading"><div class="spinner"></div>جاري التحميل...</div></div>
     <div id="typing"></div>
-    <footer>
+
+    <footer style="position:relative">
+        <button class="ib" id="emojiBtn" title="إيموجي"><i class="fas fa-smile"></i></button>
         <label for="fi" class="ib" title="صورة"><i class="fas fa-paperclip"></i></label>
         <input type="file" id="fi" hidden accept="image/*">
         <div class="iw"><input type="text" id="mi" placeholder="اكتب رسالة..." autocomplete="off"></div>
         <button class="ib sb" id="snd"><i class="fas fa-paper-plane"></i></button>
+
+        <!-- Emoji Picker -->
+        <div id="emoji-picker">
+            <input class="search-emoji" id="emojiSearch" placeholder="🔍 بحث..." autocomplete="off">
+            <div class="eg" id="emojiGrid"></div>
+        </div>
     </footer>
+</div>
+
+<!-- ═══ Edit Modal ═════════════════ -->
+<div id="edit-overlay">
+    <div id="edit-modal">
+        <h3>✏️ تعديل الرسالة</h3>
+        <textarea id="editText" maxlength="10000"></textarea>
+        <div class="ebtns">
+            <button class="cancel" id="editCancel">إلغاء</button>
+            <button class="save" id="editSave">💾 حفظ</button>
+        </div>
+    </div>
 </div>
 
 <script>
 (function() {
     'use strict';
 
-    // ══════════════════════════════════════════════════════════
-    // 🛑 1. ضع هنا بيانات مشروع Supabase الخاص بك
-    // ══════════════════════════════════════════════════════════
+    // ══════════════════════════════════════════
+    // 🛑 ضع هنا بيانات Supabase
+    // ══════════════════════════════════════════
     const SUPABASE_URL = 'https://momeodjgthtcavkdvbay.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vbWVvZGpndGh0Y2F2a2R2YmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NDU4NDYsImV4cCI6MjA5NjMyMTg0Nn0.yg-ef5sckQA-U1vP5usVrKYrRTcuMQQRygRhw5q0_DA';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.———.yg-ef5sckQA-U1vP5usVrKYrRTcuMQQRygRhw5q0_DA';
 
-    // ══════════════════════════════════════════════════════════
-    // 🛑 2. اذهب إلى Supabase Dashboard → Settings → API
-    // ══════════════════════════════════════════════════════════
-    //    انسخ Project URL و anon/public key هنا
-
-    // ── Config ────────────────────────
-    const USER_ID_KEY = 'nxc_uid';
-    const NAME_KEY = 'nxc_name';
-    const COLOR_KEY = 'nxc_color';
-    const FLIP_KEY = 'nxc_flip';
-    const DRAFT_KEY = 'nxc_draft';
+    // ── Config ─────────────────────────
+    const KEYS = { uid:'nxc_uid', name:'nxc_name', color:'nxc_color', flip:'nxc_flip', draft:'nxc_draft', sound:'nxc_sound' };
     const MAX_IMG = 500_000;
+    const PICKER_EMOJIS = ['😊','😂','❤️','🔥','👍','😍','🎉','💀','🙏','😭','😅','🤣','😎','🥺','✨','💪','😏','🤔','👀','😴','🤯','🥳','😈','🫡','🤝','✅','❌','⭐','💯','🔥','⚡','🌈','🎂','🎈','🎁','💎','👑','🚀','💡','📱','💻','🎮','🎵','🎬','📸','✈️','🏠','🌍','💰','🔑','🛡️','⚔️','🧠','🫀','👁️','🦾','🦿','🦷','👅','💋','👂','👃','🦶','👋','✋','🖐️','💔','🖤','💙','💚','💛','🧡','💜','🤎','🩵','💝','🌸','🌺','🌻','🌹','🍀','🌿','☀️','🌙','⭐','🌊','🔥','❄️','🍕','🍔','🌮','🍩','☕','🍺','🥂'];
 
-    // ── State ─────────────────────────
-    let sb = null;
-    let userId = null;
-    let myName = '';
-    let myColor = '#005c4b';
-    let isFlipped = false;
-    let subChannel = null;
+    // ── State ──────────────────────────
+    let sb = null, userId = null, myName = '', myColor = '#005c4b';
+    let isFlipped = false, subChannel = null, presenceChannel = null;
+    let currentRoom = 'general', editingMsgId = null;
+    let soundOn = true;
+    let onlineUsers = new Map(); // userId -> { user_name, color }
+    let typingUsers = new Map();
+    const myMessages = new Set(); // ids we sent (for optimistic render)
 
-    // ── DOM ───────────────────────────
+    // ── DOM ────────────────────────────
     const $ = id => document.getElementById(id);
-    const chat = $('chat');
-    const mi = $('mi');
-    const snd = $('snd');
-    const scr = $('screen');
-    const ni = $('ni');
-    const jb = $('jb');
-    const ty = $('typing');
-    const fb = $('fb');
-    const ts = $('toast');
-    const sBar = $('sBar');
-    const sBar2 = $('sBar2');
+    const chat = $('chat'), mi = $('mi'), snd = $('snd'), scr = $('screen');
+    const ni = $('ni'), jb = $('jb'), ty = $('typing'), fb = $('fb'), ts = $('toast');
+    const sBar2 = $('sBar2'), fi = $('fi'), roomTitle = $('roomTitle');
+    const onlineToggle = $('onlineToggle'), onlinePanel = $('online-panel'), onlineList = $('online-list');
+    const emojiBtn = $('emojiBtn'), emojiPicker = $('emoji-picker'), emojiGrid = $('emojiGrid'), emojiSearch = $('emojiSearch');
+    const editOverlay = $('edit-overlay'), editText = $('editText'), editSave = $('editSave'), editCancel = $('editCancel');
+    const soundToggle = $('soundToggle'), onlineBadge = $('onlineBadge');
 
     // ── Toast ──────────────────────────
     let tt = null;
-    function toast(msg) { ts.textContent = msg; ts.classList.add('shw'); if(tt) clearTimeout(tt); tt=setTimeout(()=>ts.classList.remove('shw'),3000); }
+    function toast(msg) { ts.textContent=msg; ts.classList.add('shw'); if(tt) clearTimeout(tt); tt=setTimeout(()=>ts.classList.remove('shw'),3000); }
 
-    // ── Safe HTML ─────────────────────
+    // ── Safe HTML ──────────────────────
     function esc(t) { const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
     function linkify(t) { return esc(t).replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
 
-    // ── Supabase Init ─────────────────
-    let isConnected = false;
-
-    function initSupabase() {
-        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-            sBar.textContent = '⚠️ يرجى إعداد SUPABASE_URL و SUPABASE_ANON_KEY في الكود';
-            sBar2.textContent = '⚠️ غير مهيأ';
-            return false;
-        }
+    // ════════════════════════════════════
+    // 🔈  SOUNDS (Web Audio API)
+    // ════════════════════════════════════
+    let audioCtx = null;
+    function ensureAudio() { if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)(); }
+    function playSound(type) {
+        if(!soundOn) return;
         try {
-            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                realtime: { heartbeatIntervalMs: 10000 }
-            });
-            sBar.textContent = '✅ Supabase متصل';
-            sBar2.textContent = 'Supabase متصل';
-            isConnected = true;
-            return true;
-        } catch(e) {
-            sBar.textContent = '⚠️ فشل الاتصال: ' + e.message;
-            sBar2.textContent = '⚠️ خطأ';
-            return false;
-        }
+            ensureAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const t = audioCtx.currentTime;
+            if(type==='send') {
+                osc.frequency.setValueAtTime(660, t);
+                gain.gain.setValueAtTime(0.08, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t+0.12);
+                osc.start(t); osc.stop(t+0.12);
+            } else {
+                osc.frequency.setValueAtTime(440, t);
+                osc.frequency.setValueAtTime(520, t+0.06);
+                gain.gain.setValueAtTime(0.06, t);
+                gain.gain.exponentialRampToValueAtTime(0.001, t+0.2);
+                osc.start(t); osc.stop(t+0.2);
+            }
+        } catch(e) { /* silent */ }
     }
 
-    // ── Load Messages ─────────────────
+    // ════════════════════════════════════
+    // 😊  EMOJI PICKER
+    // ════════════════════════════════════
+    function buildEmojiPicker(filter='') {
+        emojiGrid.innerHTML = '';
+        const list = filter ? PICKER_EMOJIS.filter(e => e.includes(filter)) : PICKER_EMOJIS;
+        list.forEach(e => {
+            const span = document.createElement('span');
+            span.textContent = e;
+            span.onclick = () => { mi.value += e; mi.focus(); emojiPicker.classList.remove('open'); saveDraft(); };
+            emojiGrid.appendChild(span);
+        });
+    }
+    emojiBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        emojiPicker.classList.toggle('open');
+        buildEmojiPicker();
+        if(emojiPicker.classList.contains('open')) emojiSearch.value='';
+    });
+    emojiSearch.addEventListener('input', () => buildEmojiPicker(emojiSearch.value));
+    document.addEventListener('click', (e) => {
+        if(!emojiPicker.contains(e.target) && e.target !== emojiBtn && !emojiBtn.contains(e.target))
+            emojiPicker.classList.remove('open');
+    });
+
+    // ════════════════════════════════════
+    // 👥  ONLINE / PRESENCE
+    // ════════════════════════════════════
+    function renderOnlineUsers() {
+        let html = '';
+        const me = onlineUsers.get(userId);
+        const others = [];
+        for(const [id,u] of onlineUsers) {
+            if(id !== userId) others.push({id,...u});
+        }
+        // Me first, then others
+        if(me) {
+            html += `<div class="u"><div class="ud" style="background:${me.color}">${esc(me.user_name?.charAt(0)||'?')}</div><div class="un">${esc(me.user_name)} <span style="font-size:.7rem;color:var(--muted)">(أنت)</span></div><div class="ustat online"></div></div>`;
+        }
+        others.forEach(u => {
+            const initial = (u.user_name||'?').charAt(0);
+            html += `<div class="u" data-startdm="${u.id}" data-dmname="${esc(u.user_name||'')}" data-dmcolor="${u.color}">
+                <div class="ud" style="background:${u.color}">${esc(initial)}</div>
+                <div class="un">${esc(u.user_name||'مجهول')}</div>
+                <div class="ustat online"></div>
+                <span class="dmic"><i class="fas fa-comment-dots"></i> مراسلة</span>
+            </div>`;
+        });
+        if(others.length === 0 && !me) html = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:.85rem">لا يوجد متصلون</div>';
+        onlineList.innerHTML = html;
+        onlineBadge.style.display = (others.length > 0) ? 'block' : 'none';
+
+        // Click to DM
+        onlineList.querySelectorAll('.u[data-startdm]').forEach(el => {
+            el.addEventListener('click', () => {
+                const targetId = el.dataset.startdm;
+                const targetName = el.dataset.dmname;
+                startDM(targetId, targetName);
+            });
+        });
+    }
+
+    function initPresence() {
+        if(!sb) return;
+        presenceChannel = sb.channel('online-presence', {
+            config: { presence: { key: userId } }
+        });
+
+        presenceChannel.on('presence', { event: 'sync' }, () => {
+            const state = presenceChannel.presenceState();
+            onlineUsers = new Map();
+            for(const [key, presences] of Object.entries(state)) {
+                const p = presences[0];
+                onlineUsers.set(key, { user_name: p.user_name || 'مجهول', color: p.color || '#444' });
+            }
+            renderOnlineUsers();
+        });
+
+        presenceChannel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+            const p = newPresences[0];
+            onlineUsers.set(key, { user_name: p.user_name, color: p.color });
+            renderOnlineUsers();
+        });
+
+        presenceChannel.on('presence', { event: 'leave' }, ({ key }) => {
+            onlineUsers.delete(key);
+            renderOnlineUsers();
+        });
+
+        presenceChannel.subscribe().then(() => {
+            presenceChannel.track({
+                user_name: myName,
+                color: myColor,
+                online_at: new Date().toISOString()
+            });
+        });
+    }
+
+    // Toggle online panel
+    onlineToggle.addEventListener('click', () => {
+        onlinePanel.classList.toggle('open');
+    });
+
+    // ════════════════════════════════════
+    // 💬  ROOM SYSTEM
+    // ════════════════════════════════════
+    function startDM(targetId, targetName) {
+        const parts = [userId, targetId].sort();
+        const room = `dm:${parts[0]}_${parts[1]}`;
+        const label = `محادثة مع ${targetName}`;
+        switchRoom(room, label);
+        onlinePanel.classList.remove('open');
+    }
+
+    function switchToGeneral() {
+        switchRoom('general', 'غرفة المحادثة');
+    }
+
+    function switchRoom(room, label) {
+        currentRoom = room;
+        roomTitle.textContent = label || room;
+        chat.innerHTML = '<div id="loading"><div class="spinner"></div>جاري التحميل...</div>';
+
+        // Show "general" button if in DM
+        if(room !== 'general' && !document.getElementById('backToGeneral')) {
+            const btn = document.createElement('button');
+            btn.id = 'backToGeneral';
+            btn.className = 'ib';
+            btn.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            btn.title = 'العودة للغرفة العامة';
+            btn.style.cssText = 'font-size:.8rem;margin-left:4px;';
+            btn.addEventListener('click', switchToGeneral);
+            document.querySelector('.hl').insertBefore(btn, document.querySelector('.ri'));
+        } else if(room === 'general') {
+            const el = document.getElementById('backToGeneral');
+            if(el) el.remove();
+        }
+
+        // Reload subscription for this room
+        if(subChannel) { sb.removeChannel(subChannel); subChannel=null; }
+        loadMessages();
+        subscribeRealtime();
+    }
+
+    // ════════════════════════════════════
+    // 🔌  SUPABASE INIT
+    // ════════════════════════════════════
+    function initSupabase() {
+        if(!SUPABASE_URL||!SUPABASE_ANON_KEY) { sBar2.textContent='⚠️ غير مهيأ'; return false; }
+        try {
+            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { realtime:{heartbeatIntervalMs:10000} });
+            sBar2.textContent = 'Supabase متصل';
+            return true;
+        } catch(e) { sBar2.textContent='⚠️ خطأ'; return false; }
+    }
+
+    // ════════════════════════════════════
+    // 📥  LOAD MESSAGES
+    // ════════════════════════════════════
     async function loadMessages() {
         try {
             const { data, error } = await sb
                 .from('messages')
                 .select('*')
                 .eq('deleted', false)
+                .eq('room', currentRoom)
                 .order('created_at', { ascending: true })
                 .limit(50);
-
-            if (error) throw error;
-
+            if(error) throw error;
             const ld = $('loading');
-            if (ld) ld.remove();
-
-            if (data) {
-                data.forEach(msg => renderMessage(msg));
-                scrollDown();
-            }
-        } catch(e) {
-            console.error('Load error:', e);
-            toast('فشل تحميل الرسائل: ' + e.message);
-        }
+            if(ld) ld.remove();
+            if(data) { data.forEach(m => { if(!myMessages.has(m.id)) renderMessage(m); }); scrollDown(); }
+        } catch(e) { console.error(e); toast('فشل تحميل الرسائل'); }
     }
 
-    // ── Real-time Subscription ────────
+    // ════════════════════════════════════
+    // 🔄  REALTIME
+    // ════════════════════════════════════
     function subscribeRealtime() {
-        if (subChannel) {
-            sb.removeChannel(subChannel);
-        }
-
-        subChannel = sb.channel('messages-realtime')
+        if(!sb) return;
+        subChannel = sb.channel(`msgs-${currentRoom}-${Date.now()}`)
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'messages' },
                 (payload) => {
+                    // Filter by room client-side
+                    const rec = payload.new || payload.old;
+                    if(rec && rec.room && rec.room !== currentRoom) return;
                     handleRealtime(payload);
                 }
             )
-            .subscribe((status) => {
-                console.log('Realtime status:', status);
-            });
+            .subscribe();
     }
 
     function handleRealtime(payload) {
-        const { eventType, new: newRec, old: oldRec } = payload;
-
-        switch (eventType) {
+        const { eventType, new: n, old: o } = payload;
+        switch(eventType) {
             case 'INSERT': {
-                // Remove loading
-                const ld = $('loading');
-                if (ld) ld.remove();
-                // Don't re-render if it's our own message (already shown optimistically)
-                if (newRec.user_id !== userId) {
-                    renderMessage(newRec);
+                const ld=$('loading'); if(ld) ld.remove();
+                if(n && n.user_id !== userId && n.room === currentRoom) {
+                    renderMessage(n);
                     scrollDown();
+                    playSound('receive');
                 }
                 break;
             }
             case 'UPDATE': {
-                // No-op (we only do hard deletes now)
+                if(n && n.room === currentRoom) {
+                    const el = document.querySelector(`[data-id="${n.id}"]`);
+                    if(el) {
+                        if(n.deleted) { el.remove(); }
+                        else { updateMessageEl(el, n); }
+                    }
+                }
                 break;
             }
             case 'DELETE': {
-                const el = document.querySelector(`[data-id="${oldRec.id}"]`);
-                if (el) el.remove();
+                const el = document.querySelector(`[data-id="${(o||n).id}"]`);
+                if(el) el.remove();
                 break;
             }
         }
     }
 
-    // ── Render Message ────────────────
+    function updateMessageEl(el, data) {
+        const bubble = el.querySelector('.bb');
+        if(!bubble) return;
+        const isImg = data.text && data.text.startsWith('data:image');
+        if(isImg) {
+            bubble.innerHTML = `<img src="${esc(data.text)}" onclick="window.open('${esc(data.text)}')" loading="lazy">`;
+        } else {
+            bubble.innerHTML = linkify(data.text||'');
+        }
+        // Add edited indicator
+        const meta = el.querySelector('.mt');
+        if(meta && data.edited_at) {
+            if(!el.querySelector('.edited')) {
+                const ed = document.createElement('span');
+                ed.className = 'edited';
+                ed.textContent = '· معدلة';
+                meta.insertBefore(ed, meta.firstChild);
+            }
+        }
+    }
+
+    // ════════════════════════════════════
+    // 🎨  RENDER MESSAGE
+    // ════════════════════════════════════
     function renderMessage(msg) {
         const isMe = msg.user_id === userId;
-        const bc = isMe ? (msg.color || myColor) : (msg.color || '#202c33');
-        const align = isFlipped
-            ? (isMe ? 'fs' : 'fr')
-            : (isMe ? 'se' : 're');
+        const bc = isMe ? (msg.color||myColor) : (msg.color||'#202c33');
+        const align = isFlipped ? (isMe?'fs':'fr') : (isMe?'se':'re');
 
         const div = document.createElement('div');
         div.className = `msg ${align}`;
@@ -380,115 +655,179 @@
         const bstyle = !isMe ? ` style="background:${bc}"` : '';
 
         let body = '';
-        if (isImg) {
-            body = `<img src="${esc(msg.text)}" onclick="window.open('${esc(msg.text)}')" loading="lazy">`;
-        } else {
-            body = linkify(msg.text || '');
-        }
+        if(isImg) body = `<img src="${esc(msg.text)}" onclick="window.open('${esc(msg.text)}')" loading="lazy">`;
+        else body = linkify(msg.text||'');
 
         const time = msg.created_at
-            ? new Date(msg.created_at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
-            : '';
+            ? new Date(msg.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
 
-        const del = isMe
-            ? `<button class="db" data-del="${msg.id}" title="حذف"><i class="fas fa-trash"></i></button>`
-            : '';
+        let actions = '';
+        if(isMe) {
+            actions += `<button class="act" data-edit="${msg.id}" title="تعديل"><i class="fas fa-pen"></i></button>`;
+            actions += `<button class="act db" data-del="${msg.id}" title="حذف"><i class="fas fa-trash"></i></button>`;
+        } else {
+            // Click name to DM
+        }
+
+        const edited = msg.edited_at ? '<span class="edited">· معدلة</span>' : '';
+        const senderName = msg.user_name || 'مجهول';
 
         div.innerHTML = `
-            <span class="nm">${esc(msg.user_name || 'مجهول')}</span>
+            <span class="nm">${esc(senderName)}</span>
             <div class="bb"${bstyle}>
                 ${body}
-                <div class="mt"><span>${time}</span>${del}</div>
+                <div class="mt">${edited}<span>${time}</span>${actions}</div>
             </div>`;
+
         chat.appendChild(div);
+
+        // Edit click
+        div.querySelector('[data-edit]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.target.closest('[data-edit]').dataset.edit;
+            openEdit(id, msg.text);
+        });
+
+        // Delete click
+        div.querySelector('[data-del]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.target.closest('[data-del]').dataset.del;
+            deleteMsg(id);
+        });
+
+        // Name click (received) → DM
+        if(!isMe) {
+            div.querySelector('.nm')?.addEventListener('click', () => {
+                startDM(msg.user_id, msg.user_name);
+            });
+        }
     }
 
-    function scrollDown() {
-        requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; });
+    function scrollDown() { requestAnimationFrame(() => { chat.scrollTop = chat.scrollHeight; }); }
+
+    // ════════════════════════════════════
+    // ✏️  EDIT MESSAGE
+    // ════════════════════════════════════
+    function openEdit(id, currentText) {
+        editingMsgId = id;
+        editText.value = currentText || '';
+        editOverlay.classList.add('open');
+        editText.focus();
     }
 
-    // ── Send ──────────────────────────
-    async function sendText() {
-        const text = mi.value.trim();
-        if (!text) return;
-        if (text.length > 10000) { toast('الرسالة طويلة جداً'); return; }
-
-        const msg = {
-            text,
-            user_id: userId,
-            user_name: myName,
-            color: myColor,
-            created_at: Date.now(),
-            deleted: false
-        };
-
-        // Optimistic render
-        renderMessage(msg);
-        scrollDown();
-        mi.value = '';
-        saveDraft();
+    editSave.addEventListener('click', async () => {
+        if(!editingMsgId) return;
+        const newText = editText.value.trim();
+        if(!newText) { toast('الرسالة لا يمكن أن تكون فارغة'); return; }
+        if(newText.length > 10000) { toast('الرسالة طويلة جداً'); return; }
 
         try {
-            const { error } = await sb.from('messages').insert(msg);
-            if (error) throw error;
+            const { error } = await sb
+                .from('messages')
+                .update({ text: newText, edited_at: Date.now() })
+                .eq('id', editingMsgId)
+                .eq('user_id', userId);
+            if(error) throw error;
+            editOverlay.classList.remove('open');
+            editingMsgId = null;
+        } catch(e) {
+            toast('فشل التعديل: ' + e.message);
+        }
+    });
+
+    editCancel.addEventListener('click', () => {
+        editOverlay.classList.remove('open');
+        editingMsgId = null;
+    });
+
+    editOverlay.addEventListener('click', (e) => {
+        if(e.target === editOverlay) { editOverlay.classList.remove('open'); editingMsgId = null; }
+    });
+
+    // ════════════════════════════════════
+    // 📤  SEND
+    // ════════════════════════════════════
+    async function sendText() {
+        const text = mi.value.trim();
+        if(!text) return;
+        if(text.length > 10000) { toast('الرسالة طويلة جداً'); return; }
+
+        const msg = { text, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
+        mi.value = ''; saveDraft();
+
+        // Optimistic
+        const tempId = 'temp_' + Date.now();
+        msg.id = tempId;
+        myMessages.add(tempId);
+        renderMessage(msg);
+        scrollDown();
+        playSound('send');
+
+        try {
+            const { data, error } = await sb.from('messages').insert(msg).select();
+            if(error) throw error;
+            if(data && data[0]) {
+                // Replace temp with real
+                const el = document.querySelector(`[data-id="${tempId}"]`);
+                if(el) el.setAttribute('data-id', data[0].id);
+                myMessages.delete(tempId);
+                myMessages.add(data[0].id);
+            }
         } catch(e) {
             toast('فشل الإرسال: ' + e.message);
         }
     }
 
     async function sendImage(base64) {
-        if (base64.length > MAX_IMG) { toast('حجم الصورة كبير جداً (500KB كحد أقصى)'); return; }
-
-        const msg = {
-            text: base64,
-            user_id: userId,
-            user_name: myName,
-            color: myColor,
-            created_at: Date.now(),
-            deleted: false
-        };
-
+        if(base64.length > MAX_IMG) { toast('حجم الصورة كبير جداً (500KB كحد أقصى)'); return; }
+        const msg = { text:base64, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
+        const tempId = 'temp_' + Date.now();
+        msg.id = tempId;
+        myMessages.add(tempId);
         renderMessage(msg);
         scrollDown();
+        playSound('send');
 
         try {
-            const { error } = await sb.from('messages').insert(msg);
-            if (error) throw error;
-        } catch(e) {
-            toast('فشل إرسال الصورة: ' + e.message);
-        }
+            const { data, error } = await sb.from('messages').insert(msg).select();
+            if(error) throw error;
+            if(data && data[0]) {
+                const el = document.querySelector(`[data-id="${tempId}"]`);
+                if(el) el.setAttribute('data-id', data[0].id);
+                myMessages.delete(tempId);
+                myMessages.add(data[0].id);
+            }
+        } catch(e) { toast('فشل إرسال الصورة: ' + e.message); }
     }
 
     async function deleteMsg(id) {
-        if (!confirm('هل تريد حذف هذه الرسالة؟')) return;
+        if(!confirm('هل تريد حذف هذه الرسالة؟')) return;
         try {
-            const { error } = await sb
-                .from('messages')
-                .delete()
-                .eq('id', id)
-                .eq('user_id', userId);
-            if (error) throw error;
-            // Remove from view immediately
+            const { error } = await sb.from('messages').delete().eq('id',id).eq('user_id',userId);
+            if(error) throw error;
             const el = document.querySelector(`[data-id="${id}"]`);
-            if (el) el.remove();
-        } catch(e) {
-            toast('فشل الحذف: ' + e.message);
-        }
+            if(el) el.remove();
+            myMessages.delete(id);
+        } catch(e) { toast('فشل الحذف: ' + e.message); }
     }
 
-    // ── Draft ─────────────────────────
-    function saveDraft() { try { localStorage.setItem(DRAFT_KEY, mi.value); } catch {} }
-    function loadDraft() { try { const d=localStorage.getItem(DRAFT_KEY); if(d) mi.value=d; } catch {} }
+    // ════════════════════════════════════
+    // 💾  DRAFT
+    // ════════════════════════════════════
+    function saveDraft() { try { localStorage.setItem(KEYS.draft, mi.value); } catch {} }
+    function loadDraft() { try { const d=localStorage.getItem(KEYS.draft); if(d) mi.value=d; } catch {} }
     mi.addEventListener('input', saveDraft);
 
-    // ── Events ────────────────────────
-    mi.addEventListener('keydown', (e) => { if (e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendText(); } });
+    // ════════════════════════════════════
+    // ⌨️  EVENTS
+    // ════════════════════════════════════
+    mi.addEventListener('keydown', (e) => { if(e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendText(); } });
     snd.addEventListener('click', sendText);
 
     document.addEventListener('paste', (e) => {
-        for (const item of e.clipboardData.items) {
-            if (item.type.startsWith('image/')) {
-                const f = item.getAsFile(); if (!f) continue;
+        for(const item of e.clipboardData.items) {
+            if(item.type.startsWith('image/')) {
+                const f = item.getAsFile(); if(!f) continue;
                 const r = new FileReader();
                 r.onload = (ev) => sendImage(ev.target.result);
                 r.readAsDataURL(f);
@@ -496,85 +835,100 @@
         }
     });
 
-    $('fi').addEventListener('change', (e) => {
-        const f = e.target.files[0]; if (!f) return;
+    fi.addEventListener('change', (e) => {
+        const f = e.target.files[0]; if(!f) return;
         const r = new FileReader();
         r.onload = (ev) => sendImage(ev.target.result);
         r.readAsDataURL(f); e.target.value = '';
     });
 
-    // Delete delegation
-    chat.addEventListener('click', (e) => {
-        const btn = e.target.closest('.db');
-        if (btn) deleteMsg(btn.getAttribute('data-del'));
-    });
-
     // Image click
     chat.addEventListener('click', (e) => {
         const img = e.target.closest('.bb img');
-        if (img && img.src.startsWith('data:image')) window.open(img.src);
+        if(img && img.src.startsWith('data:image')) window.open(img.src);
     });
 
-    // Flip
+    // ════════════════════════════════════
+    // 🔄  FLIP
+    // ════════════════════════════════════
     fb.addEventListener('click', () => {
         isFlipped = !isFlipped;
         fb.classList.toggle('on', isFlipped);
-        localStorage.setItem(FLIP_KEY, isFlipped ? '1' : '0');
+        localStorage.setItem(KEYS.flip, isFlipped?'1':'0');
         document.querySelectorAll('.msg').forEach(el => {
-            const isMe = el.classList.contains('se') || el.classList.contains('fs');
+            const isMe = el.classList.contains('se')||el.classList.contains('fs');
             el.classList.remove('se','re','fs','fr');
             el.classList.add(isFlipped ? (isMe?'fs':'fr') : (isMe?'se':'re'));
         });
     });
-    if (localStorage.getItem(FLIP_KEY)==='1') { isFlipped=true; fb.classList.add('on'); }
+    if(localStorage.getItem(KEYS.flip)==='1') { isFlipped=true; fb.classList.add('on'); }
 
-    // ── Name Screen ───────────────────
-    const savedName = localStorage.getItem(NAME_KEY);
-    if (savedName) ni.value = savedName;
-    const savedColor = localStorage.getItem(COLOR_KEY);
-    if (savedColor) {
-        myColor = savedColor;
-        document.querySelectorAll('.dot').forEach(el => {
-            el.classList.toggle('ok', el.getAttribute('data-c') === savedColor);
-        });
-    }
+    // ════════════════════════════════════
+    // 🔊  SOUND TOGGLE
+    // ════════════════════════════════════
+    const savedSound = localStorage.getItem(KEYS.sound);
+    if(savedSound === 'off') { soundOn = false; soundToggle.classList.remove('on'); soundToggle.innerHTML = '<i class="fas fa-volume-mute"></i>'; }
+    else { soundToggle.classList.add('on'); soundToggle.innerHTML = '<i class="fas fa-volume-up"></i>'; }
+
+    soundToggle.addEventListener('click', () => {
+        soundOn = !soundOn;
+        localStorage.setItem(KEYS.sound, soundOn ? 'on' : 'off');
+        soundToggle.classList.toggle('on', soundOn);
+        soundToggle.innerHTML = soundOn ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    });
+
+    // ════════════════════════════════════
+    // 👤  NAME SCREEN
+    // ════════════════════════════════════
+    const savedName = localStorage.getItem(KEYS.name);
+    if(savedName) ni.value = savedName;
+    const savedColor = localStorage.getItem(KEYS.color);
+    if(savedColor) { myColor=savedColor; document.querySelectorAll('.dot').forEach(el=>el.classList.toggle('ok',el.getAttribute('data-c')===savedColor)); }
 
     document.querySelectorAll('.dot').forEach(el => {
         el.addEventListener('click', () => {
-            document.querySelectorAll('.dot').forEach(d => d.classList.remove('ok'));
-            el.classList.add('ok');
-            myColor = el.getAttribute('data-c');
+            document.querySelectorAll('.dot').forEach(d=>d.classList.remove('ok'));
+            el.classList.add('ok'); myColor=el.getAttribute('data-c');
         });
     });
 
     jb.addEventListener('click', async () => {
         const name = ni.value.trim();
-        if (!name) { toast('يرجى إدخال اسمك'); return; }
-
-        if (!initSupabase()) return;
-
+        if(!name) { toast('يرجى إدخال اسمك'); return; }
+        if(!initSupabase()) return;
         myName = name;
         myColor = document.querySelector('.dot.ok').getAttribute('data-c');
-        localStorage.setItem(NAME_KEY, myName);
-        localStorage.setItem(COLOR_KEY, myColor);
-
-        // User ID
-        userId = localStorage.getItem(USER_ID_KEY);
-        if (!userId) {
-            userId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2,15);
-            localStorage.setItem(USER_ID_KEY, userId);
-        }
+        localStorage.setItem(KEYS.name, myName);
+        localStorage.setItem(KEYS.color, myColor);
+        userId = localStorage.getItem(KEYS.uid);
+        if(!userId) { userId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2,15); localStorage.setItem(KEYS.uid, userId); }
 
         scr.classList.add('hide');
         $('myAv').textContent = myName.charAt(0).toUpperCase();
         $('myAv').style.background = myColor;
 
+        initPresence();
         await loadMessages();
         subscribeRealtime();
         loadDraft();
+        playSound('receive');
     });
+    ni.addEventListener('keydown', (e) => { if(e.key==='Enter') jb.click(); });
 
-    ni.addEventListener('keydown', (e) => { if (e.key==='Enter') jb.click(); });
+    // ════════════════════════════════════
+    // ❤️  HEARTBEAT
+    // ════════════════════════════════════
+    setInterval(() => {
+        if(presenceChannel) {
+            presenceChannel.track({ user_name: myName, color: myColor, online_at: new Date().toISOString() });
+        }
+    }, 30000);
+
+    document.addEventListener('visibilitychange', () => {
+        if(!document.hidden && presenceChannel) {
+            presenceChannel.track({ user_name: myName, color: myColor, online_at: new Date().toISOString() });
+        }
+    });
 
 })();
 </script>
