@@ -636,16 +636,19 @@
     function updateMessageEl(el, data) {
         const bubble = el.querySelector('.bb');
         if(!bubble) return;
+        // Save meta (time + edit/delete buttons with their event listeners)
+        const meta = bubble.querySelector('.mt');
         const isImg = data.text && data.text.startsWith('data:image');
         if(isImg) {
             bubble.innerHTML = `<img src="${esc(data.text)}" onclick="window.open('${esc(data.text)}')" loading="lazy">`;
         } else {
             bubble.innerHTML = linkify(data.text||'');
         }
+        // Re-append meta so buttons + event listeners survive
+        if(meta) bubble.appendChild(meta);
         // Add edited indicator
-        const meta = el.querySelector('.mt');
-        if(meta && data.edited_at) {
-            if(!el.querySelector('.edited')) {
+        if(data.edited_at) {
+            if(!meta.querySelector('.edited')) {
                 const ed = document.createElement('span');
                 ed.className = 'edited';
                 ed.textContent = '· معدلة';
