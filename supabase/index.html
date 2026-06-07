@@ -247,28 +247,72 @@
 
         /* ═══ Responsive ══════════════════════ */
         @media (max-width:640px) { .msg { max-width:88%; } .card { padding:1.5rem; } }
+
+        /* ═══ Auth Tabs ══════════════════════ */
+        .tabs { display:flex; gap:6px; margin-bottom:1rem; }
+        .tab { flex:1; padding:8px; border:none; border-radius:6px; background:var(--input); color:var(--muted); cursor:pointer; font-size:.85rem; font-weight:bold; transition:.2s; }
+        .tab.on { background:var(--primary); color:#fff; }
+        .tabc { display:flex; flex-direction:column; gap:10px; }
+        .tabc.hide { display:none; }
+        .tabc input { width:100%;padding:12px 16px;border-radius:8px;border:1px solid #333;background:var(--input);color:#fff;font-size:1rem;text-align:center;outline:none;transition:border-color .2s; }
+        .tabc input:focus { border-color:var(--primary); }
+        .tabc button { width:100%;padding:12px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:1rem;font-weight:bold;cursor:pointer;transition:opacity .2s; }
+        .tabc button:hover { opacity:.85; }
+        .aerr { font-size:.8rem; color:var(--danger); min-height:1em; }
+        .tabc .colors { display:flex;justify-content:center;gap:10px; }
+        .tabc .dot { width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.2s; }
+        .tabc .dot.ok { border-color:#fff; transform:scale(1.15); }
+
+        /* ═══ Admin Badge ═══════════════════════ */
+        .admin-badge { font-size:.55rem; vertical-align:middle; margin-right:3px; }
+        .msg.se .admin-badge { color:rgba(255,255,255,.6); }
+        .msg.re .admin-badge { color:var(--muted); }
+        .u .admin-tag { font-size:.6rem; color:var(--muted); background:rgba(255,215,0,.15); padding:1px 6px; border-radius:4px; margin-right:4px; }
+
+        /* ═══ Admin Delete (visible on all msgs) ═══ */
+        .msg .mt .act.admin-del { color:#ff9800; }
+        .msg .mt .act.admin-del:hover { opacity:1; color:#ffc107; transform:scale(1.15); }
     </style>
 </head>
 <body>
 
 <div id="toast"></div>
 
-<!-- ═══ Name Screen ═══════════════ -->
+<!-- ═══ Auth Screen ═══════════════ -->
 <div id="screen">
     <div class="card">
         <i class="fas fa-comments" style="font-size:2.8rem;color:var(--primary)"></i>
         <h1>Nexus Chat</h1>
-        <p>محادثة فورية — اختر اسمك وانضم</p>
-        <input type="text" id="ni" placeholder="اسمك ليظهر للآخرين" maxlength="30" autocomplete="off">
-        <div class="colors" id="cg">
-            <div class="dot ok" data-c="#005c4b" style="background:#005c4b"></div>
-            <div class="dot" data-c="#004b5c" style="background:#004b5c"></div>
-            <div class="dot" data-c="#5c003a" style="background:#5c003a"></div>
-            <div class="dot" data-c="#5c3a00" style="background:#5c3a00"></div>
-            <div class="dot" data-c="#3a5c00" style="background:#3a5c00"></div>
-            <div class="dot" data-c="#444" style="background:#444"></div>
+        <p>سجّل الدخول أو أنشئ حساباً</p>
+        <div class="tabs">
+            <button class="tab on" data-tab="login">تسجيل الدخول</button>
+            <button class="tab" data-tab="signup">إنشاء حساب</button>
         </div>
-        <button id="jb">انضم إلى المحادثة</button>
+
+        <!-- Login -->
+        <div class="tabc" id="tab-login">
+            <input type="text" id="li" placeholder="اسم المستخدم" maxlength="30" autocomplete="username">
+            <input type="password" id="lp" placeholder="كلمة السر" maxlength="100" autocomplete="current-password">
+            <div id="lerr" class="aerr"></div>
+            <button id="lb">تسجيل الدخول</button>
+        </div>
+
+        <!-- Signup -->
+        <div class="tabc hide" id="tab-signup">
+            <input type="text" id="si" placeholder="اسم المستخدم" maxlength="30" autocomplete="off">
+            <input type="password" id="sp" placeholder="كلمة السر" maxlength="100" autocomplete="new-password">
+            <input type="password" id="sp2" placeholder="تأكيد كلمة السر" maxlength="100" autocomplete="new-password">
+            <div class="colors" id="cg">
+                <div class="dot ok" data-c="#005c4b" style="background:#005c4b"></div>
+                <div class="dot" data-c="#004b5c" style="background:#004b5c"></div>
+                <div class="dot" data-c="#5c003a" style="background:#5c003a"></div>
+                <div class="dot" data-c="#5c3a00" style="background:#5c3a00"></div>
+                <div class="dot" data-c="#3a5c00" style="background:#3a5c00"></div>
+                <div class="dot" data-c="#444" style="background:#444"></div>
+            </div>
+            <div id="serr" class="aerr"></div>
+            <button id="sb">إنشاء الحساب</button>
+        </div>
     </div>
 </div>
 
@@ -348,6 +392,7 @@
     let onlineUsers = new Map(); // userId -> { user_name, color }
     let typingUsers = new Map();
     const myMessages = new Set(); // ids we sent (for optimistic render)
+    let isAdmin = false;
 
     // ── DOM ────────────────────────────
     const $ = id => document.getElementById(id);
@@ -365,7 +410,13 @@
 
     // ── Safe HTML ──────────────────────
     function esc(t) { const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
-    function linkify(t) { return esc(t).replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+    function linkify(t) { return esc(t).replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/\%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig,'<a href="$1" target="_blank" rel="noopener">$1</a>'); }
+
+    // ── Hash ───────────────────────────
+    async function hashPass(pw) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
 
     // ════════════════════════════════════
     // 🔈  SOUNDS (Web Audio API)
@@ -432,13 +483,13 @@
         }
         // Me first, then others
         if(me) {
-            html += `<div class="u"><div class="ud" style="background:${me.color}">${esc(me.user_name?.charAt(0)||'?')}</div><div class="un">${esc(me.user_name)} <span style="font-size:.7rem;color:var(--muted)">(أنت)</span></div><div class="ustat online"></div></div>`;
+            html += `<div class="u"><div class="ud" style="background:${me.color}">${esc(me.user_name?.charAt(0)||'?')}</div><div class="un">${esc(me.user_name)} <span class="admin-tag">${me.is_admin?'👑 آدمين':''}</span><span style="font-size:.7rem;color:var(--muted)">(أنت)</span></div><div class="ustat online"></div></div>`;
         }
         others.forEach(u => {
             const initial = (u.user_name||'?').charAt(0);
             html += `<div class="u" data-startdm="${u.id}" data-dmname="${esc(u.user_name||'')}" data-dmcolor="${u.color}">
                 <div class="ud" style="background:${u.color}">${esc(initial)}</div>
-                <div class="un">${esc(u.user_name||'مجهول')}</div>
+                <div class="un">${esc(u.user_name||'مجهول')} <span class="admin-tag">${u.is_admin?'👑 آدمين':''}</span></div>
                 <div class="ustat online"></div>
                 <span class="dmic"><i class="fas fa-comment-dots"></i> مراسلة</span>
             </div>`;
@@ -468,14 +519,14 @@
             onlineUsers = new Map();
             for(const [key, presences] of Object.entries(state)) {
                 const p = presences[0];
-                onlineUsers.set(key, { user_name: p.user_name || 'مجهول', color: p.color || '#444' });
+                onlineUsers.set(key, { user_name: p.user_name || 'مجهول', color: p.color || '#444', is_admin: !!p.is_admin });
             }
             renderOnlineUsers();
         });
 
         presenceChannel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
             const p = newPresences[0];
-            onlineUsers.set(key, { user_name: p.user_name, color: p.color });
+            onlineUsers.set(key, { user_name: p.user_name, color: p.color, is_admin: !!p.is_admin });
             renderOnlineUsers();
         });
 
@@ -489,6 +540,7 @@
                 presenceChannel.track({
                     user_name: myName,
                     color: myColor,
+                    is_admin: isAdmin,
                     online_at: new Date().toISOString()
                 });
             }
@@ -560,7 +612,7 @@
         try {
             const { data, error } = await sb
                 .from('messages')
-                .select('*')
+                .select('*, profiles!left(is_admin)')
                 .eq('deleted', false)
                 .eq('room', currentRoom)
                 .order('created_at', { ascending: true })
@@ -568,7 +620,7 @@
             if(error) throw error;
             const ld = $('loading');
             if(ld) ld.remove();
-            if(data) { data.forEach(m => { if(!myMessages.has(m.id)) renderMessage(m); }); scrollDown(); }
+            if(data) { data.forEach(m => { if(!myMessages.has(m.id)) { m.is_admin = m.profiles?.is_admin || false; renderMessage(m); } }); scrollDown(); }
         } catch(e) { console.error(e); toast('فشل تحميل الرسائل'); }
     }
 
@@ -608,9 +660,13 @@
                             if(delBtn) delBtn.setAttribute('data-del', n.id);
                         }
                     } else {
-                        renderMessage(n);
-                        scrollDown();
-                        playSound('receive');
+                        // Lookup admin status from profiles
+                        sb.from('profiles').select('is_admin').eq('id', n.user_id).maybeSingle().then(({data: p}) => {
+                            n.is_admin = p?.is_admin || false;
+                            renderMessage(n);
+                            scrollDown();
+                            playSound('receive');
+                        });
                     }
                 }
                 break;
@@ -683,15 +739,17 @@
         if(isMe) {
             actions += `<button class="act" data-edit="${msg.id}" title="تعديل"><i class="fas fa-pen"></i></button>`;
             actions += `<button class="act db" data-del="${msg.id}" title="حذف"><i class="fas fa-trash"></i></button>`;
-        } else {
-            // Click name to DM
+        } else if(isAdmin) {
+            // Admin can delete any message
+            actions += `<button class="act admin-del" data-admin-del="${msg.id}" title="حذف (آدمين)"><i class="fas fa-trash"></i></button>`;
         }
 
         const edited = msg.edited_at ? '<span class="edited">· معدلة</span>' : '';
         const senderName = msg.user_name || 'مجهول';
+        const adminBadge = msg.is_admin ? '<span class="admin-badge">👑</span>' : '';
 
         div.innerHTML = `
-            <span class="nm">${esc(senderName)}</span>
+            <span class="nm">${esc(senderName)}${adminBadge}</span>
             <div class="bb"${bstyle}>
                 ${body}
                 <div class="mt">${edited}<span>${time}</span>${actions}</div>
@@ -706,11 +764,18 @@
             openEdit(id, msg.text);
         });
 
-        // Delete click
+        // Delete click (own)
         div.querySelector('[data-del]')?.addEventListener('click', (e) => {
             e.stopPropagation();
             const id = e.target.closest('[data-del]').dataset.del;
             deleteMsg(id);
+        });
+
+        // Admin delete click (anyone's message)
+        div.querySelector('[data-admin-del]')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = e.target.closest('[data-admin-del]').dataset.adminDel;
+            adminDeleteMsg(id, msg.user_id);
         });
 
         // Name click (received) → DM
@@ -773,7 +838,7 @@
         if(!text) return;
         if(text.length > 10000) { toast('الرسالة طويلة جداً'); return; }
 
-        const msg = { text, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
+        const msg = { text, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false, is_admin: isAdmin };
         mi.value = ''; saveDraft();
 
         // Optimistic render (appears immediately)
@@ -808,7 +873,7 @@
 
     async function sendImage(base64) {
         if(base64.length > MAX_IMG) { toast('حجم الصورة كبير جداً (500KB كحد أقصى)'); return; }
-        const msg = { text:base64, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false };
+        const msg = { text:base64, user_id:userId, user_name:myName, color:myColor, room:currentRoom, created_at:Date.now(), deleted:false, is_admin: isAdmin };
         const tempId = 'temp_' + Date.now();
         msg.id = tempId;
         renderMessage(msg);
@@ -840,6 +905,17 @@
         if(!confirm('هل تريد حذف هذه الرسالة؟')) return;
         try {
             const { error } = await sb.from('messages').delete().eq('id',id).eq('user_id',userId);
+            if(error) throw error;
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if(el) el.remove();
+            myMessages.delete(id);
+        } catch(e) { toast('فشل الحذف: ' + e.message); }
+    }
+
+    async function adminDeleteMsg(id, ownerId) {
+        if(!confirm('حذف رسالة هذا المستخدم؟')) return;
+        try {
+            const { error } = await sb.from('messages').delete().eq('id',id);
             if(error) throw error;
             const el = document.querySelector(`[data-id="${id}"]`);
             if(el) el.remove();
@@ -914,13 +990,22 @@
     });
 
     // ════════════════════════════════════
-    // 👤  NAME SCREEN
+    // 🔐  AUTH SCREEN
     // ════════════════════════════════════
-    const savedName = localStorage.getItem(KEYS.name);
-    if(savedName) ni.value = savedName;
-    const savedColor = localStorage.getItem(KEYS.color);
-    if(savedColor) { myColor=savedColor; document.querySelectorAll('.dot').forEach(el=>el.classList.toggle('ok',el.getAttribute('data-c')===savedColor)); }
 
+    // ── Tab switching ──────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+            tab.classList.add('on');
+            document.querySelectorAll('.tabc').forEach(c => c.classList.add('hide'));
+            document.getElementById('tab-'+tab.dataset.tab).classList.remove('hide');
+            // Clear errors
+            document.querySelectorAll('.aerr').forEach(e => e.textContent='');
+        });
+    });
+
+    // ── Color picker ───────────────────
     document.querySelectorAll('.dot').forEach(el => {
         el.addEventListener('click', () => {
             document.querySelectorAll('.dot').forEach(d=>d.classList.remove('ok'));
@@ -928,16 +1013,19 @@
         });
     });
 
-    jb.addEventListener('click', async () => {
-        const name = ni.value.trim();
-        if(!name) { toast('يرجى إدخال اسمك'); return; }
-        if(!initSupabase()) return;
-        myName = name;
-        myColor = document.querySelector('.dot.ok').getAttribute('data-c');
-        localStorage.setItem(KEYS.name, myName);
-        localStorage.setItem(KEYS.color, myColor);
-        userId = localStorage.getItem(KEYS.uid);
-        if(!userId) { userId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2,15); localStorage.setItem(KEYS.uid, userId); }
+    // ── Enter key shortcuts ────────────
+    $('li').addEventListener('keydown', (e) => { if(e.key==='Enter') $('lb').click(); });
+    $('lp').addEventListener('keydown', (e) => { if(e.key==='Enter') $('lb').click(); });
+    $('si').addEventListener('keydown', (e) => { if(e.key==='Enter') $('sb').click(); });
+    $('sp').addEventListener('keydown', (e) => { if(e.key==='Enter') $('sb').click(); });
+    $('sp2').addEventListener('keydown', (e) => { if(e.key==='Enter') $('sb').click(); });
+
+    // ── Join chat after auth ───────────
+    async function joinChat(profile) {
+        userId = profile.id;
+        myName = profile.username;
+        myColor = profile.color;
+        isAdmin = !!profile.is_admin;
 
         scr.classList.add('hide');
         $('myAv').textContent = myName.charAt(0).toUpperCase();
@@ -948,21 +1036,75 @@
         subscribeRealtime();
         loadDraft();
         playSound('receive');
+    }
+
+    // ── Signup ─────────────────────────
+    $('sb').addEventListener('click', async () => {
+        const username = $('si').value.trim();
+        const pw = $('sp').value;
+        const pw2 = $('sp2').value;
+        const err = $('serr');
+        err.textContent = '';
+
+        if(!username || username.length < 2) { err.textContent = 'اسم المستخدم قصير جداً (حرفين على الأقل)'; return; }
+        if(!pw || pw.length < 4) { err.textContent = 'كلمة السر قصيرة جداً (4 محارف على الأقل)'; return; }
+        if(pw !== pw2) { err.textContent = 'كلمة السر غير متطابقة'; return; }
+        if(!initSupabase()) return;
+
+        // Check if username exists
+        const { data: existing } = await sb.from('profiles').select('id').eq('username', username).maybeSingle();
+        if(existing) { err.textContent = 'اسم المستخدم موجود مسبقاً'; return; }
+
+        const pwHash = await hashPass(pw);
+        const color = document.querySelector('#tab-signup .dot.ok')?.getAttribute('data-c') || '#005c4b';
+
+        const { data, error } = await sb.from('profiles').insert({
+            username, password: pwHash, color
+        }).select().single();
+
+        if(error) { err.textContent = 'فشل إنشاء الحساب: ' + error.message; return; }
+
+        toast('✅ تم إنشاء الحساب!');
+        joinChat(data);
     });
-    ni.addEventListener('keydown', (e) => { if(e.key==='Enter') jb.click(); });
+
+    // ── Login ──────────────────────────
+    $('lb').addEventListener('click', async () => {
+        const username = $('li').value.trim();
+        const pw = $('lp').value;
+        const err = $('lerr');
+        err.textContent = '';
+
+        if(!username) { err.textContent = 'يرجى إدخال اسم المستخدم'; return; }
+        if(!pw) { err.textContent = 'يرجى إدخال كلمة السر'; return; }
+        if(!initSupabase()) return;
+
+        const { data, error } = await sb.from('profiles')
+            .select('*')
+            .eq('username', username)
+            .maybeSingle();
+
+        if(error || !data) { err.textContent = 'اسم المستخدم غير موجود'; return; }
+
+        const pwHash = await hashPass(pw);
+        if(data.password !== pwHash) { err.textContent = 'كلمة السر خطأ'; return; }
+
+        toast('✅ أهلًا بك!');
+        joinChat(data);
+    });
 
     // ════════════════════════════════════
     // ❤️  HEARTBEAT
     // ════════════════════════════════════
     setInterval(() => {
         if(presenceChannel) {
-            presenceChannel.track({ user_name: myName, color: myColor, online_at: new Date().toISOString() });
+            presenceChannel.track({ user_name: myName, color: myColor, is_admin: isAdmin, online_at: new Date().toISOString() });
         }
     }, 30000);
 
     document.addEventListener('visibilitychange', () => {
         if(!document.hidden && presenceChannel) {
-            presenceChannel.track({ user_name: myName, color: myColor, online_at: new Date().toISOString() });
+            presenceChannel.track({ user_name: myName, color: myColor, is_admin: isAdmin, online_at: new Date().toISOString() });
         }
     });
 
