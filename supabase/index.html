@@ -743,6 +743,9 @@
                 .eq('id', editingMsgId)
                 .eq('user_id', userId);
             if(error) throw error;
+            // Update DOM immediately (Realtime doesn't broadcast to sender)
+            const editedEl = document.querySelector(`[data-id="${editingMsgId}"]`);
+            if(editedEl) updateMessageEl(editedEl, { text: newText, edited_at: Date.now() });
             editOverlay.classList.remove('open');
             editingMsgId = null;
         } catch(e) {
