@@ -599,7 +599,14 @@
                     if(n.user_id === userId) {
                         // Replace temp element ID with real DB ID
                         const tempEl = chat.querySelector('[data-id^="temp_"]');
-                        if(tempEl) tempEl.setAttribute('data-id', n.id);
+                        if(tempEl) {
+                            tempEl.setAttribute('data-id', n.id);
+                            // Also update edit/delete button data
+                            const editBtn = tempEl.querySelector('[data-edit^="temp_"]');
+                            if(editBtn) editBtn.setAttribute('data-edit', n.id);
+                            const delBtn = tempEl.querySelector('[data-del^="temp_"]');
+                            if(delBtn) delBtn.setAttribute('data-del', n.id);
+                        }
                     } else {
                         renderMessage(n);
                         scrollDown();
@@ -765,7 +772,7 @@
 
         // Optimistic render (appears immediately)
         const tempId = 'temp_' + Date.now();
-        msg.id = tempId;
+        msg.id = tempId;            // ← _tempId → id
         renderMessage(msg);
         scrollDown();
         playSound('send');
