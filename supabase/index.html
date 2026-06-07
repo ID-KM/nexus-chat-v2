@@ -333,7 +333,7 @@
     // 🛑 ضع هنا بيانات Supabase
     // ══════════════════════════════════════════
     const SUPABASE_URL = 'https://momeodjgthtcavkdvbay.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.———.yg-ef5sckQA-U1vP5usVrKYrRTcuMQQRygRhw5q0_DA';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vbWVvZGpndGh0Y2F2a2R2YmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NDU4NDYsImV4cCI6MjA5NjMyMTg0Nn0.yg-ef5sckQA-U1vP5usVrKYrRTcuMQQRygRhw5q0_DA';
 
     // ── Config ─────────────────────────
     const KEYS = { uid:'nxc_uid', name:'nxc_name', color:'nxc_color', flip:'nxc_flip', draft:'nxc_draft', sound:'nxc_sound' };
@@ -484,12 +484,14 @@
             renderOnlineUsers();
         });
 
-        presenceChannel.subscribe().then(() => {
-            presenceChannel.track({
-                user_name: myName,
-                color: myColor,
-                online_at: new Date().toISOString()
-            });
+        presenceChannel.subscribe((status) => {
+            if(status === 'SUBSCRIBED') {
+                presenceChannel.track({
+                    user_name: myName,
+                    color: myColor,
+                    online_at: new Date().toISOString()
+                });
+            }
         });
     }
 
@@ -769,7 +771,10 @@
         playSound('send');
 
         try {
-            const { error } = await sb.from('messages').insert(msg);
+            const { error } = await sb.from('messages').insert({
+                text: msg.text, user_id: msg.user_id, user_name: msg.user_name,
+                color: msg.color, room: msg.room, created_at: msg.created_at, deleted: msg.deleted
+            });
             if(error) throw error;
         } catch(e) {
             toast('فشل الإرسال: ' + e.message);
@@ -786,7 +791,10 @@
         playSound('send');
 
         try {
-            const { error } = await sb.from('messages').insert(msg);
+            const { error } = await sb.from('messages').insert({
+                text: msg.text, user_id: msg.user_id, user_name: msg.user_name,
+                color: msg.color, room: msg.room, created_at: msg.created_at, deleted: msg.deleted
+            });
             if(error) throw error;
         } catch(e) { toast('فشل إرسال الصورة: ' + e.message); }
     }
