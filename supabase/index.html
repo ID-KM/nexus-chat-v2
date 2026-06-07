@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus Chat v2</title>
+    <title>هدرة</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
     <style>
@@ -56,7 +57,7 @@
         }
 
         /* ═══ App Layout ══════════════════════ */
-        .app { width:100%; max-width:1000px; height:100vh; background:var(--bg); display:flex; flex-direction:column; }
+        .app { width:100%; height:100vh; background:var(--bg); display:flex; flex-direction:column; }
 
         /* ═══ Header ══════════════════════════ */
         header {
@@ -89,27 +90,59 @@
         }
         .ib.onl.has-online .badge { background:#4caf50; }
 
-        /* ═══ Online Panel ════════════════════ */
-        #online-panel {
-            background:var(--panel);border-bottom:1px solid rgba(255,255,255,.05);
-            max-height:0;overflow:hidden;transition:max-height .3s ease;
-            flex-shrink:0;
+        /* ═══ Main Layout (Chat + Sidebar) ═══ */
+        .main {
+            flex:1; display:flex; overflow:hidden;
         }
-        #online-panel.open { max-height:200px; overflow-y:auto; }
-        #online-panel .u {
-            display:flex;align-items:center;gap:10px;
-            padding:8px 16px;cursor:pointer;
-            transition:background .15s;
+
+        /* ═══ Sidebar ════════════════════════ */
+        #sidebar {
+            width:0; overflow:hidden; transition:width .35s ease;
+            background:var(--panel); border-right:1px solid rgba(255,255,255,.05);
+            flex-shrink:0; display:flex; flex-direction:column;
         }
-        #online-panel .u:hover { background:rgba(255,255,255,.05); }
-        #online-panel .u .ud { width:32px;height:32px;border-radius:50%;flex-shrink:0; display:flex;align-items:center;justify-content:center; font-weight:bold; font-size:.8rem; }
-        #online-panel .u .un { font-size:.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-        #online-panel .u .ustat { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
-        #online-panel .u .ustat.online { background:#4caf50; }
-        #online-panel .u .ustat.offline { background:#666; }
-        #online-panel .u .dmic { margin-right:auto; font-size:.7rem; color:var(--muted); }
+        #sidebar.open {
+            width:280px; overflow-y:auto; overflow-x:hidden;
+        }
+        #sidebar .sh {
+            padding:12px 16px; font-size:.8rem; font-weight:bold;
+            color:var(--muted); border-bottom:1px solid rgba(255,255,255,.05);
+            display:flex; align-items:center; gap:8px; flex-shrink:0;
+        }
+        #sidebar .sh i { font-size:.85rem; }
+        #sidebar .u {
+            display:flex; align-items:center; gap:10px;
+            padding:10px 16px; cursor:pointer;
+            transition:background .15s; position:relative;
+        }
+        #sidebar .u:hover { background:rgba(255,255,255,.05); }
+        #sidebar .u .ud {
+            width:36px;height:36px;border-radius:50%;flex-shrink:0;
+            display:flex;align-items:center;justify-content:center;
+            font-weight:bold; font-size:.85rem;
+        }
+        #sidebar .u .un { font-size:.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+        #sidebar .u .ustat { width:8px;height:8px;border-radius:50%;flex-shrink:0; background:#4caf50; }
+        #sidebar .u .ubdg {
+            position:absolute; top:4px; right:4px;
+            background:var(--danger); color:#fff; font-size:.6rem;
+            min-width:18px; height:18px; border-radius:9px;
+            display:flex;align-items:center;justify-content:center;
+            padding:0 5px; font-weight:bold;
+        }
+        #sidebar .u .dmic {
+            font-size:.65rem; color:var(--muted); flex-shrink:0;
+            opacity:0; transition:opacity .2s;
+        }
+        #sidebar .u:hover .dmic { opacity:1; }
+        #sidebar .u.me { border-bottom:1px solid rgba(255,255,255,.05); cursor:default; }
+        #sidebar .u.me:hover { background:transparent; }
+        #sidebar .admin-tag { font-size:.65rem; }
 
         /* ═══ Chat ════════════════════════════ */
+        #chat-wrap {
+            flex:1; display:flex; flex-direction:column; overflow:hidden;
+        }
         #chat {
             flex:1;overflow-y:auto;padding:16px;
             background-image:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
@@ -242,11 +275,15 @@
         #chat::-webkit-scrollbar { width:5px; }
         #chat::-webkit-scrollbar-track { background:transparent; }
         #chat::-webkit-scrollbar-thumb { background:#374045; border-radius:3px; }
-        #online-panel::-webkit-scrollbar { width:4px; }
-        #online-panel::-webkit-scrollbar-thumb { background:#374045; border-radius:3px; }
+        #sidebar::-webkit-scrollbar { width:4px; }
+        #sidebar::-webkit-scrollbar-thumb { background:#374045; border-radius:3px; }
 
         /* ═══ Responsive ══════════════════════ */
-        @media (max-width:640px) { .msg { max-width:88%; } .card { padding:1.5rem; } }
+        @media (max-width:640px) {
+            .msg { max-width:88%; } .card { padding:1.5rem; }
+            #sidebar.open { width:100%; position:fixed; top:0; left:0; bottom:0; z-index:100; }
+            #sidebar .u { padding:14px 16px; }
+        }
 
         /* ═══ Auth Tabs ══════════════════════ */
         .tabs { display:flex; gap:6px; margin-bottom:1rem; }
@@ -282,7 +319,7 @@
 <div id="screen">
     <div class="card">
         <i class="fas fa-comments" style="font-size:2.8rem;color:var(--primary)"></i>
-        <h1>Nexus Chat</h1>
+        <h1>هدرة</h1>
         <p>سجّل الدخول أو أنشئ حساباً</p>
         <div class="tabs">
             <button class="tab on" data-tab="login">تسجيل الدخول</button>
@@ -333,15 +370,27 @@
             <button class="ib" id="soundToggle" title="الصوت"><i class="fas fa-volume-up"></i></button>
         </div>
     </header>
+    <!-- ═══ Main Layout ═══════════════════════ -->
+    <div class="main">
 
-    <!-- Online Users Panel -->
-    <div id="online-panel">
-        <div id="online-list"></div>
+        <!-- ═══ Sidebar (Users) ═══════════════ -->
+        <div id="sidebar">
+            <div class="sh"><i class="fas fa-users"></i> المستخدمون</div>
+            <div id="online-list"></div>
+        </div>
+
+        <!-- Chat Area -->
+        <div id="chat-wrap">
+
+            <!-- ═══ Chat Messages ═══════════════ -->
+            <div id="chat"><div id="loading"><div class="spinner"></div>جاري التحميل...</div></div>
+
+            <!-- ═══ Typing ══════════════════════ -->
+            <div id="typing"></div>
+
+        </div>
+
     </div>
-
-    <div id="chat"><div id="loading"><div class="spinner"></div>جاري التحميل...</div></div>
-    <div id="typing"></div>
-
     <footer style="position:relative">
         <button class="ib" id="emojiBtn" title="إيموجي"><i class="fas fa-smile"></i></button>
         <label for="fi" class="ib" title="صورة"><i class="fas fa-paperclip"></i></label>
@@ -386,20 +435,26 @@
 
     // ── State ──────────────────────────
     let sb = null, userId = null, myName = '', myColor = '#005c4b';
-    let isFlipped = false, subChannel = null, presenceChannel = null;
+    let isFlipped = false, subChannel = null;
     let currentRoom = 'general', editingMsgId = null;
     let soundOn = true;
-    let onlineUsers = new Map(); // userId -> { user_name, color }
+    let allUsers = []; // [{id, username, color, is_admin}]
     let typingUsers = new Map();
     const myMessages = new Set(); // ids we sent (for optimistic render)
     let isAdmin = false;
+    let unreadCounts = {}; // { userId: count }
+    let lastDmTime = {};  // { userId: timestamp }
+    function getDmPartner(room, myId) {
+        const p = room.replace('dm:','').split('_');
+        return p[0] === myId ? p[1] : p[0];
+    }
 
     // ── DOM ────────────────────────────
     const $ = id => document.getElementById(id);
     const chat = $('chat'), mi = $('mi'), snd = $('snd'), scr = $('screen');
     const ni = $('ni'), jb = $('jb'), ty = $('typing'), fb = $('fb'), ts = $('toast');
     const sBar2 = $('sBar2'), fi = $('fi'), roomTitle = $('roomTitle');
-    const onlineToggle = $('onlineToggle'), onlinePanel = $('online-panel'), onlineList = $('online-list');
+    const onlineToggle = $('onlineToggle'), sidebar = $('sidebar'), onlineList = $('online-list');
     const emojiBtn = $('emojiBtn'), emojiPicker = $('emoji-picker'), emojiGrid = $('emojiGrid'), emojiSearch = $('emojiSearch');
     const editOverlay = $('edit-overlay'), editText = $('editText'), editSave = $('editSave'), editCancel = $('editCancel');
     const soundToggle = $('soundToggle'), onlineBadge = $('onlineBadge');
@@ -472,29 +527,38 @@
     });
 
     // ════════════════════════════════════
-    // 👥  ONLINE / PRESENCE
+    // 👥  ONLINE / ALL USERS
     // ════════════════════════════════════
     function renderOnlineUsers() {
+        // Sort: users with recent DMs first, then alphabetically
+        const me = allUsers.find(u => u.id === userId);
+        let others = allUsers.filter(u => u.id !== userId);
+        others.sort((a, b) => {
+            const tA = lastDmTime[a.id] || 0;
+            const tB = lastDmTime[b.id] || 0;
+            if(tA !== tB) return tB - tA; // most recent first
+            return (a.username||'').localeCompare(b.username||'');
+        });
+
         let html = '';
-        const me = onlineUsers.get(userId);
-        const others = [];
-        for(const [id,u] of onlineUsers) {
-            if(id !== userId) others.push({id,...u});
-        }
-        // Me first, then others
+        // Me first
         if(me) {
-            html += `<div class="u"><div class="ud" style="background:${me.color}">${esc(me.user_name?.charAt(0)||'?')}</div><div class="un">${esc(me.user_name)} <span class="admin-tag">${me.is_admin?'👑 آدمين':''}</span><span style="font-size:.7rem;color:var(--muted)">(أنت)</span></div><div class="ustat online"></div></div>`;
+            html += `<div class="u me"><div class="ud" style="background:${me.color}">${esc(me.username?.charAt(0)||'?')}</div><div class="un">${esc(me.username)} <span class="admin-tag">${me.is_admin?'👑 آدمين':''}</span><span style="font-size:.7rem;color:var(--muted)">(أنت)</span></div><div class="ustat online"></div></div>`;
         }
+        // Others
         others.forEach(u => {
-            const initial = (u.user_name||'?').charAt(0);
-            html += `<div class="u" data-startdm="${u.id}" data-dmname="${esc(u.user_name||'')}" data-dmcolor="${u.color}">
+            const initial = (u.username||'?').charAt(0);
+            const unread = unreadCounts[u.id] || 0;
+            const badge = unread > 0 ? `<span class="ubdg">${unread > 99 ? '99+' : unread}</span>` : '';
+            html += `<div class="u" data-startdm="${u.id}" data-dmname="${esc(u.username||'')}" data-dmcolor="${u.color}">
                 <div class="ud" style="background:${u.color}">${esc(initial)}</div>
-                <div class="un">${esc(u.user_name||'مجهول')} <span class="admin-tag">${u.is_admin?'👑 آدمين':''}</span></div>
+                <div class="un">${esc(u.username||'مجهول')} <span class="admin-tag">${u.is_admin?'👑 آدمين':''}</span></div>
                 <div class="ustat online"></div>
-                <span class="dmic"><i class="fas fa-comment-dots"></i> مراسلة</span>
+                ${badge}
+                <span class="dmic"><i class="fas fa-comment-dots"></i></span>
             </div>`;
         });
-        if(others.length === 0 && !me) html = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:.85rem">لا يوجد متصلون</div>';
+        if(others.length === 0 && !me) html = '<div style="padding:16px;text-align:center;color:var(--muted);font-size:.85rem">لا يوجد مستخدمون آخرون</div>';
         onlineList.innerHTML = html;
         onlineBadge.style.display = (others.length > 0) ? 'block' : 'none';
 
@@ -508,48 +572,42 @@
         });
     }
 
-    function initPresence() {
+    async function loadUsers() {
         if(!sb) return;
-        presenceChannel = sb.channel('online-presence', {
-            config: { presence: { key: userId } }
-        });
-
-        presenceChannel.on('presence', { event: 'sync' }, () => {
-            const state = presenceChannel.presenceState();
-            onlineUsers = new Map();
-            for(const [key, presences] of Object.entries(state)) {
-                const p = presences[0];
-                onlineUsers.set(key, { user_name: p.user_name || 'مجهول', color: p.color || '#444', is_admin: !!p.is_admin });
-            }
-            renderOnlineUsers();
-        });
-
-        presenceChannel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            const p = newPresences[0];
-            onlineUsers.set(key, { user_name: p.user_name, color: p.color, is_admin: !!p.is_admin });
-            renderOnlineUsers();
-        });
-
-        presenceChannel.on('presence', { event: 'leave' }, ({ key }) => {
-            onlineUsers.delete(key);
-            renderOnlineUsers();
-        });
-
-        presenceChannel.subscribe((status) => {
-            if(status === 'SUBSCRIBED') {
-                presenceChannel.track({
-                    user_name: myName,
-                    color: myColor,
-                    is_admin: isAdmin,
-                    online_at: new Date().toISOString()
-                });
-            }
-        });
+        const { data, error } = await sb.from('profiles').select('id, username, color, is_admin');
+        if(error) { console.error('فشل تحميل المستخدمين:', error.message); return; }
+        allUsers = data || [];
+        renderOnlineUsers();
     }
 
-    // Toggle online panel
+    async function initUnreadFromHistory() {
+        if(!sb || !userId) return;
+        try {
+            const { data } = await sb
+                .from('messages')
+                .select('user_id, room, created_at')
+                .ilike('room', `dm:%${userId}%`)
+                .neq('user_id', userId)
+                .eq('deleted', false)
+                .order('created_at', { ascending: false })
+                .limit(100);
+            if(data) {
+                const seen = new Set();
+                data.forEach(m => {
+                    const partner = getDmPartner(m.room, userId);
+                    if(partner && !seen.has(partner)) {
+                        seen.add(partner);
+                        lastDmTime[partner] = m.created_at;
+                    }
+                });
+                renderOnlineUsers();
+            }
+        } catch(e) { console.error('initUnreadFromHistory:', e); }
+    }
+
+    // Toggle sidebar
     onlineToggle.addEventListener('click', () => {
-        onlinePanel.classList.toggle('open');
+        sidebar.classList.toggle('open');
     });
 
     // ════════════════════════════════════
@@ -560,7 +618,10 @@
         const room = `dm:${parts[0]}_${parts[1]}`;
         const label = `محادثة مع ${targetName}`;
         switchRoom(room, label);
-        onlinePanel.classList.remove('open');
+        sidebar.classList.remove('open');
+        // Clear unread for this user
+        unreadCounts[targetId] = 0;
+        renderOnlineUsers();
     }
 
     function switchToGeneral() {
@@ -629,13 +690,10 @@
     // ════════════════════════════════════
     function subscribeRealtime() {
         if(!sb) return;
-        subChannel = sb.channel(`msgs-${currentRoom}-${Date.now()}`)
+        subChannel = sb.channel(`msgs-all-${Date.now()}`)
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'messages' },
                 (payload) => {
-                    // Filter by room client-side
-                    const rec = payload.new || payload.old;
-                    if(rec && rec.room && rec.room !== currentRoom) return;
                     handleRealtime(payload);
                 }
             )
@@ -647,20 +705,33 @@
         switch(eventType) {
             case 'INSERT': {
                 const ld=$('loading'); if(ld) ld.remove();
-                if(n && n.room === currentRoom) {
-                    if(n.user_id === userId) {
-                        // Replace temp element ID with real DB ID
+                if(!n) break;
+                const isMyMsg = n.user_id === userId;
+
+                // ── DM sidebar tracking (updates even in wrong room) ──
+                if(n.room && n.room.startsWith('dm:')) {
+                    const partnerId = getDmPartner(n.room, userId);
+                    if(partnerId) {
+                        lastDmTime[partnerId] = n.created_at || Date.now();
+                        if(!isMyMsg) {
+                            unreadCounts[partnerId] = (unreadCounts[partnerId] || 0) + 1;
+                        }
+                        renderOnlineUsers();
+                    }
+                }
+
+                // ── Render if matches current room ──
+                if(n.room === currentRoom) {
+                    if(isMyMsg) {
                         const tempEl = chat.querySelector('[data-id^="temp_"]');
                         if(tempEl) {
                             tempEl.setAttribute('data-id', n.id);
-                            // Also update edit/delete button data
                             const editBtn = tempEl.querySelector('[data-edit^="temp_"]');
                             if(editBtn) editBtn.setAttribute('data-edit', n.id);
                             const delBtn = tempEl.querySelector('[data-del^="temp_"]');
                             if(delBtn) delBtn.setAttribute('data-del', n.id);
                         }
                     } else {
-                        // Lookup admin status from profiles
                         sb.from('profiles').select('is_admin').eq('id', n.user_id).maybeSingle().then(({data: p}) => {
                             n.is_admin = p?.is_admin || false;
                             renderMessage(n);
@@ -1030,10 +1101,11 @@
         scr.classList.add('hide');
         $('myAv').textContent = myName.charAt(0).toUpperCase();
         $('myAv').style.background = myColor;
-
-        initPresence();
+        initSupabase();
+        loadUsers();
         await loadMessages();
         subscribeRealtime();
+        initUnreadFromHistory();
         loadDraft();
         playSound('receive');
     }
@@ -1094,17 +1166,15 @@
     });
 
     // ════════════════════════════════════
-    // ❤️  HEARTBEAT
+    // ❤️  HEARTBEAT — refresh users list
     // ════════════════════════════════════
     setInterval(() => {
-        if(presenceChannel) {
-            presenceChannel.track({ user_name: myName, color: myColor, is_admin: isAdmin, online_at: new Date().toISOString() });
-        }
+        loadUsers();
     }, 30000);
 
     document.addEventListener('visibilitychange', () => {
-        if(!document.hidden && presenceChannel) {
-            presenceChannel.track({ user_name: myName, color: myColor, is_admin: isAdmin, online_at: new Date().toISOString() });
+        if(!document.hidden) {
+            loadUsers();
         }
     });
 

@@ -1,24 +1,30 @@
 -- ═══════════════════════════════════════════════════════════════
--- Nexus Chat v2 — Supabase Schema (Full)
+-- Nexus Chat v2 — Schema Fixed (TEXT UUID IDs)
 -- ═══════════════════════════════════════════════════════════════
--- شغّل هذا في Supabase Dashboard → SQL Editor
+-- حذف الجداول القديمة أولاً (لأن السكربت السابق فشل جزئياً)
 -- ═══════════════════════════════════════════════════════════════
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
 
--- إنشاء جدول الحسابات
-CREATE TABLE IF NOT EXISTS profiles (
-  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+-- ═══════════════════════════════════════════════════════════════
+-- 1. جدول الحسابات
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE profiles (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::TEXT,
   username TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL,           -- SHA-256 hash hex
+  password TEXT NOT NULL,
   color TEXT NOT NULL DEFAULT '#005c4b',
   is_admin BOOLEAN NOT NULL DEFAULT FALSE,
   created_at BIGINT NOT NULL DEFAULT (EXTRACT(EPOCH FROM now()) * 1000)::BIGINT
 );
 
--- إنشاء جدول الرسائل (إذا ما موجود)
-CREATE TABLE IF NOT EXISTS messages (
+-- ═══════════════════════════════════════════════════════════════
+-- 2. جدول الرسائل
+-- ═══════════════════════════════════════════════════════════════
+CREATE TABLE messages (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   text TEXT NOT NULL,
-  user_id BIGINT NOT NULL REFERENCES profiles(id),  -- يشير لجدول الحسابات
+  user_id TEXT NOT NULL REFERENCES profiles(id),
   user_name TEXT NOT NULL DEFAULT 'مجهول',
   color TEXT NOT NULL DEFAULT '#005c4b',
   room TEXT NOT NULL DEFAULT 'general',
@@ -27,27 +33,20 @@ CREATE TABLE IF NOT EXISTS messages (
   deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- إضافة الأعمدة للجدول القديم (إذا موجود)
-ALTER TABLE messages ALTER COLUMN user_id TYPE BIGINT USING user_id::BIGINT;
-ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited_at BIGINT;
-
--- فهارس
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_messages_room ON messages(room);
-CREATE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username);
+-- ═══════════════════════════════════════════════════════════════
+-- 3. فهارس
+-- ═══════════════════════════════════════════════════════════════
+CREATE INDEX idx_messages_created_at ON messages(created_at DESC);
+CREATE INDEX idx_messages_room ON messages(room);
+CREATE INDEX idx_profiles_username ON profiles(username);
 
 -- ═══════════════════════════════════════════════════════════════
--- Row Level Security (RLS)
+-- 4. Row Level Security
 -- ═══════════════════════════════════════════════════════════════
-
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- حذف السياسات القديمة
-DROP POLICY IF EXISTS "Owner can soft-delete their message" ON messages;
-DROP POLICY IF EXISTS "Anyone can read non-deleted messages" ON messages;
-
--- سياسات جديدة للرسائل
+-- سياسات الرسائل
 CREATE POLICY "Anyone can read messages"
   ON messages FOR SELECT USING (true);
 
@@ -60,7 +59,7 @@ CREATE POLICY "Owner or admin can update messages"
 CREATE POLICY "Owner or admin can delete messages"
   ON messages FOR DELETE USING (true);
 
--- سياسات للحسابات
+-- سياسات الحسابات
 CREATE POLICY "Anyone can read profiles"
   ON profiles FOR SELECT USING (true);
 
@@ -68,7 +67,7 @@ CREATE POLICY "Anyone can insert profiles"
   ON profiles FOR INSERT WITH CHECK (true);
 
 -- ═══════════════════════════════════════════════════════════════
--- Enable Realtime
+-- 5. تفعيل Realtime
 -- ═══════════════════════════════════════════════════════════════
 ALTER PUBLICATION supabase_realtime ADD TABLE messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE profiles;

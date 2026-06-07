@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00a884"/>
+      <stop offset="100%" stop-color="#008066"/>
+    </linearGradient>
+  </defs>
+  <!-- ظل -->
+  <rect x="30" y="50" width="440" height="380" rx="60" fill="rgba(0,0,0,0.15)" transform="translate(8,8)"/>
+  <!-- فقاعة الكلام -->
+  <rect x="25" y="45" width="440" height="380" rx="60" fill="url(#g)"/>
+  <!-- ذيل الفقاعة -->
+  <path d="M100 425 L140 460 L200 425" fill="url(#g)"/>
+  <!-- حرف الهاء (ه) -->
+  <text x="248" y="310" font-family="system-ui, sans-serif" font-size="240" font-weight="900" fill="white" text-anchor="middle" dominant-baseline="central">ه</text>
+  <!-- نقاط إشعار صغيرة -->
+  <circle cx="370" cy="120" r="30" fill="#fff" opacity="0.3"/>
+  <circle cx="420" cy="170" r="16" fill="#fff" opacity="0.2"/>
+</svg>
