@@ -778,11 +778,23 @@
         playSound('send');
 
         try {
-            const { error } = await sb.from('messages').insert({
+            const { data, error } = await sb.from('messages').insert({
                 text: msg.text, user_id: msg.user_id, user_name: msg.user_name,
                 color: msg.color, room: msg.room, created_at: msg.created_at, deleted: msg.deleted
-            });
+            }).select();
             if(error) throw error;
+            // Replace temp ID with real DB ID so delete/edit work immediately
+            if(data && data[0] && data[0].id) {
+                const realId = data[0].id;
+                const el = chat.querySelector(`[data-id="${tempId}"]`);
+                if(el) {
+                    el.setAttribute('data-id', realId);
+                    el.querySelector('[data-edit]')?.setAttribute('data-edit', realId);
+                    el.querySelector('[data-del]')?.setAttribute('data-del', realId);
+                }
+                myMessages.delete(tempId);
+                myMessages.add(realId);
+            }
         } catch(e) {
             toast('فشل الإرسال: ' + e.message);
         }
@@ -798,11 +810,23 @@
         playSound('send');
 
         try {
-            const { error } = await sb.from('messages').insert({
+            const { data, error } = await sb.from('messages').insert({
                 text: msg.text, user_id: msg.user_id, user_name: msg.user_name,
                 color: msg.color, room: msg.room, created_at: msg.created_at, deleted: msg.deleted
-            });
+            }).select();
             if(error) throw error;
+            // Replace temp ID with real DB ID so delete/edit work immediately
+            if(data && data[0] && data[0].id) {
+                const realId = data[0].id;
+                const el = chat.querySelector(`[data-id="${tempId}"]`);
+                if(el) {
+                    el.setAttribute('data-id', realId);
+                    el.querySelector('[data-edit]')?.setAttribute('data-edit', realId);
+                    el.querySelector('[data-del]')?.setAttribute('data-del', realId);
+                }
+                myMessages.delete(tempId);
+                myMessages.add(realId);
+            }
         } catch(e) { toast('فشل إرسال الصورة: ' + e.message); }
     }
 
